@@ -22,9 +22,9 @@ interface DataContextType {
   addPost: (post: Omit<Post, "id">) => void;
   updatePost: (post: Post) => void;
   deletePost: (id: number) => void;
-  addSocial: (social: Social) => void;
-  updateSocial: (index: number, social: Social) => void;
-  deleteSocial: (index: number) => void;
+  addSocial: (social: Omit<Social, "id">) => void;
+  updateSocial: (social: Social) => void;
+  deleteSocial: (id: number) => void;
   resetAll: () => void;
 }
 
@@ -117,24 +117,23 @@ export function DataProvider({ children }: { children: ReactNode }) {
   );
 
   const addSocial = useCallback(
-    (social: Social) => {
-      setSocials([...socials, social]);
+    (social: Omit<Social, "id">) => {
+      const maxId = socials.reduce((m, s) => Math.max(m, s.id), 0);
+      setSocials([...socials, { ...social, id: maxId + 1 }]);
     },
     [socials, setSocials]
   );
 
   const updateSocial = useCallback(
-    (index: number, social: Social) => {
-      const updated = [...socials];
-      updated[index] = social;
-      setSocials(updated);
+    (social: Social) => {
+      setSocials(socials.map((s) => (s.id === social.id ? social : s)));
     },
     [socials, setSocials]
   );
 
   const deleteSocial = useCallback(
-    (index: number) => {
-      setSocials(socials.filter((_, i) => i !== index));
+    (id: number) => {
+      setSocials(socials.filter((s) => s.id !== id));
     },
     [socials, setSocials]
   );
