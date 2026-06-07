@@ -1,12 +1,4 @@
-import socials from "../data/socials";
-import { GitHubIcon, TelegramIcon, EmailIcon, ChevronDownIcon } from "./Icons";
 import "./Hero.css";
-
-const iconMap: Record<string, React.ReactNode> = {
-  github: <GitHubIcon size={24} />,
-  telegram: <TelegramIcon size={24} />,
-  email: <EmailIcon size={24} />,
-};
 
 export default function Hero() {
   return (
@@ -22,26 +14,7 @@ export default function Hero() {
           Создаю приложения и инструменты, которые упрощают жизнь. Люблю чистый
           код, красивый дизайн и автоматизацию.
         </p>
-
-        <div className="hero__socials">
-          {socials.map((s) => (
-            <a
-              key={s.name}
-              href={s.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hero__social-link"
-              title={s.name}
-            >
-              {iconMap[s.icon]}
-            </a>
-          ))}
-        </div>
       </div>
-
-      <a href="#projects" className="hero__scroll-hint" aria-label="Scroll down">
-        <ChevronDownIcon size={28} />
-      </a>
     </section>
   );
 }

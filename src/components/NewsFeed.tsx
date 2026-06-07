@@ -1,4 +1,4 @@
-import posts from "../data/posts";
+import { useData } from "../context/DataContext";
 import { CommentIcon } from "./Icons";
 import "./NewsFeed.css";
 
@@ -12,6 +12,8 @@ function formatDate(dateStr: string): string {
 }
 
 export default function NewsFeed() {
+  const { posts } = useData();
+
   return (
     <section id="news" className="news">
       <div className="news__inner">
@@ -23,31 +25,43 @@ export default function NewsFeed() {
         <div className="news__feed">
           {posts.map((post) => (
             <article key={post.id} className="post-card">
-              <div className="post-card__meta">
-                <time className="post-card__date">{formatDate(post.date)}</time>
-                {post.tags && (
-                  <div className="post-card__tags">
-                    {post.tags.map((tag) => (
-                      <span key={tag} className="post-card__tag">
-                        #{tag}
-                      </span>
-                    ))}
+              {post.image && (
+                <div className="post-card__image-wrap">
+                  <img
+                    className="post-card__image"
+                    src={post.image}
+                    alt={post.title}
+                  />
+                </div>
+              )}
+
+              <div className="post-card__body">
+                <div className="post-card__meta">
+                  <time className="post-card__date">{formatDate(post.date)}</time>
+                  {post.tags && (
+                    <div className="post-card__tags">
+                      {post.tags.map((tag) => (
+                        <span key={tag} className="post-card__tag">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <h3 className="post-card__title">{post.title}</h3>
+                <p className="post-card__content">{post.content}</p>
+
+                {post.comment && (
+                  <div className="post-card__comment">
+                    <div className="post-card__comment-header">
+                      <CommentIcon />
+                      <span>Комментарий автора</span>
+                    </div>
+                    <p className="post-card__comment-text">{post.comment}</p>
                   </div>
                 )}
               </div>
-
-              <h3 className="post-card__title">{post.title}</h3>
-              <p className="post-card__content">{post.content}</p>
-
-              {post.comment && (
-                <div className="post-card__comment">
-                  <div className="post-card__comment-header">
-                    <CommentIcon />
-                    <span>Комментарий автора</span>
-                  </div>
-                  <p className="post-card__comment-text">{post.comment}</p>
-                </div>
-              )}
             </article>
           ))}
         </div>

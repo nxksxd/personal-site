@@ -1,73 +1,83 @@
-# React + TypeScript + Vite
+# nxksxd — персональный сайт
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Личный сайт-визитка с блогом, проектами и админ-панелью.
 
-Currently, two official plugins are available:
+**Превью:** [dist-pusvyjlk.devinapps.com](https://dist-pusvyjlk.devinapps.com)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Возможности
 
-## React Compiler
+- **Главная страница** — два блока рядом: проекты (3 шт.) и последние новости (2 шт.)
+- **Блок «Обо мне»** — аватар, имя, описание
+- **Страница проектов** (`/#projects`) — все проекты в сетке
+- **Страница новостей** (`/#news`) — все посты с картинками
+- **Админ-панель** (`/#admin`) — добавление/редактирование постов, проектов, соцсетей и управление пользователями
+- **Авторизация** — логин + пароль, мульти-юзер, SHA-256 хеширование
+- **Темы** — тёмная и светлая (переключатель в шапке)
+- **Адаптивность** — мобильные и десктопные экраны
+- **Картинки в постах** — загрузка файла или URL
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Стек
 
-## Expanding the ESLint configuration
+- **React 18** + **TypeScript**
+- **Vite** — сборка и dev-сервер
+- **CSS** — кастомные свойства (CSS Variables), без фреймворков
+- **localStorage** — хранение данных (посты, проекты, соцсети, пользователи)
+- **Google Fonts** — Inter
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Структура проекта
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+src/
+├── components/
+│   ├── admin/          # Админ-панель (логин, редакторы)
+│   ├── Header.tsx      # Шапка с навигацией
+│   ├── Hero.tsx        # Блок «Обо мне»
+│   ├── HomeSection.tsx # Главная: проекты + новости рядом
+│   ├── AllProjects.tsx # Страница всех проектов
+│   ├── AllNews.tsx     # Страница всех новостей
+│   ├── Footer.tsx      # Подвал
+│   └── Icons.tsx       # SVG-иконки
+├── context/
+│   ├── AuthContext.tsx  # Авторизация
+│   ├── DataContext.tsx  # Данные (посты, проекты, соцсети)
+│   └── ThemeContext.tsx # Тема
+├── data/               # Дефолтные данные
+├── App.tsx             # Роутинг
+└── main.tsx            # Точка входа
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Запуск
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+# Установить зависимости
+npm install
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Dev-сервер (http://localhost:5173)
+npm run dev
+
+# Сборка для продакшена
+npm run build
+
+# Превью сборки
+npm run preview
 ```
+
+## Админ-панель
+
+1. Перейди на `/#admin`
+2. При первом входе — создай аккаунт (логин + пароль, минимум 4 символа)
+3. Вкладки: **Новости**, **Проекты**, **Соцсети**, **Пользователи**
+4. Все изменения сохраняются в `localStorage` браузера
+
+## Роутинг
+
+| Хеш | Страница |
+|------|----------|
+| `#` или пустой | Главная |
+| `#projects` | Все проекты |
+| `#news` | Все новости |
+| `#admin` | Админ-панель |
+
+## Лицензия
+
+MIT

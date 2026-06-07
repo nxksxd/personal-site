@@ -1,19 +1,20 @@
 import { useData } from "../context/DataContext";
 import { ExternalLinkIcon, GitHubIcon } from "./Icons";
-import "./Projects.css";
+import "./AllProjects.css";
 
-export default function Projects() {
+export default function AllProjects() {
   const { projects } = useData();
 
   return (
-    <section id="projects" className="projects">
-      <div className="projects__inner">
-        <h2 className="section-title">Проекты</h2>
-        <p className="section-subtitle">
-          Вот несколько вещей, над которыми я работаю
+    <section className="all-projects">
+      <div className="all-projects__inner">
+        <a href="#" className="all-projects__back">&larr; На главную</a>
+        <h1 className="all-projects__title">Все проекты</h1>
+        <p className="all-projects__subtitle">
+          Вот всё, над чем я работаю и работал
         </p>
 
-        <div className="projects__grid">
+        <div className="all-projects__grid">
           {projects.map((p) => (
             <article key={p.id} className="project-card">
               <div className="project-card__header">
@@ -43,9 +44,7 @@ export default function Projects() {
                   )}
                 </div>
               </div>
-
               <p className="project-card__desc">{p.description}</p>
-
               <div className="project-card__tags">
                 {p.tags.map((tag) => (
                   <span key={tag} className="project-card__tag">
@@ -56,6 +55,10 @@ export default function Projects() {
             </article>
           ))}
         </div>
+
+        {projects.length === 0 && (
+          <p className="all-projects__empty">Нет проектов.</p>
+        )}
       </div>
     </section>
   );
