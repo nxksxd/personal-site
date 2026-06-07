@@ -1,0 +1,137 @@
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 24px 60px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero__bg-blur {
+  position: absolute;
+  top: -40%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 600px;
+  background: var(--accent);
+  opacity: 0.08;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+}
+
+.hero__content {
+  position: relative;
+  z-index: 1;
+  animation: fadeInUp 0.8s ease;
+}
+
+.hero__avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 auto 24px;
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.25);
+}
+
+.hero__name {
+  font-size: 3.2rem;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  color: var(--text-primary);
+  margin: 0 0 12px;
+  line-height: 1.1;
+}
+
+.hero__tagline {
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  margin: 0 0 20px;
+  font-weight: 500;
+}
+
+.hero__bio {
+  max-width: 500px;
+  margin: 0 auto 32px;
+  color: var(--text-tertiary);
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.hero__socials {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.hero__social-link {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+.hero__social-link:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.2);
+}
+
+.hero__scroll-hint {
+  position: absolute;
+  bottom: 32px;
+  color: var(--text-tertiary);
+  animation: bounce 2s infinite;
+  text-decoration: none;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+@media (max-width: 600px) {
+  .hero__name {
+    font-size: 2.2rem;
+  }
+
+  .hero__avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+
+  .hero__tagline {
+    font-size: 1rem;
+  }
+}
