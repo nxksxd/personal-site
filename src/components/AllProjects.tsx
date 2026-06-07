@@ -1,0 +1,65 @@
+import { useData } from "../context/DataContext";
+import { ExternalLinkIcon, GitHubIcon } from "./Icons";
+import "./AllProjects.css";
+
+export default function AllProjects() {
+  const { projects } = useData();
+
+  return (
+    <section className="all-projects">
+      <div className="all-projects__inner">
+        <a href="#" className="all-projects__back">&larr; На главную</a>
+        <h1 className="all-projects__title">Все проекты</h1>
+        <p className="all-projects__subtitle">
+          Вот всё, над чем я работаю и работал
+        </p>
+
+        <div className="all-projects__grid">
+          {projects.map((p) => (
+            <article key={p.id} className="project-card">
+              <div className="project-card__header">
+                <h3 className="project-card__title">{p.title}</h3>
+                <div className="project-card__links">
+                  {p.github && (
+                    <a
+                      href={p.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="project-card__icon-link"
+                      title="GitHub"
+                    >
+                      <GitHubIcon size={18} />
+                    </a>
+                  )}
+                  {p.link !== "#" && (
+                    <a
+                      href={p.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="project-card__icon-link"
+                      title="Открыть"
+                    >
+                      <ExternalLinkIcon size={16} />
+                    </a>
+                  )}
+                </div>
+              </div>
+              <p className="project-card__desc">{p.description}</p>
+              <div className="project-card__tags">
+                {p.tags.map((tag) => (
+                  <span key={tag} className="project-card__tag">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+
+        {projects.length === 0 && (
+          <p className="all-projects__empty">Нет проектов.</p>
+        )}
+      </div>
+    </section>
+  );
+}

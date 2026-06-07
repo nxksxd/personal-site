@@ -4,8 +4,9 @@ import { DataProvider } from "./context/DataContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Header from "./components/Header";
 import Hero from "./components/Hero";
-import Projects from "./components/Projects";
-import NewsFeed from "./components/NewsFeed";
+import HomeSection from "./components/HomeSection";
+import AllProjects from "./components/AllProjects";
+import AllNews from "./components/AllNews";
 import Footer from "./components/Footer";
 import AdminPanel from "./components/admin/AdminPanel";
 import AdminLogin from "./components/admin/AdminLogin";
@@ -14,7 +15,10 @@ function useHashRoute() {
   const [hash, setHash] = useState(window.location.hash);
 
   useEffect(() => {
-    const onHashChange = () => setHash(window.location.hash);
+    const onHashChange = () => {
+      setHash(window.location.hash);
+      window.scrollTo(0, 0);
+    };
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
@@ -22,14 +26,37 @@ function useHashRoute() {
   return hash;
 }
 
-function Site() {
+function Home() {
   return (
     <>
       <Header />
       <main>
         <Hero />
-        <Projects />
-        <NewsFeed />
+        <HomeSection />
+      </main>
+      <Footer />
+    </>
+  );
+}
+
+function ProjectsPage() {
+  return (
+    <>
+      <Header />
+      <main>
+        <AllProjects />
+      </main>
+      <Footer />
+    </>
+  );
+}
+
+function NewsPage() {
+  return (
+    <>
+      <Header />
+      <main>
+        <AllNews />
       </main>
       <Footer />
     </>
@@ -48,15 +75,25 @@ function AdminGate({ onBack }: { onBack: () => void }) {
 
 export default function App() {
   const hash = useHashRoute();
-  const isAdmin = hash === "#admin";
-  const goBack = () => (window.location.hash = "");
+  const goHome = () => (window.location.hash = "");
+
+  const renderPage = () => {
+    switch (hash) {
+      case "#admin":
+        return <AdminGate onBack={goHome} />;
+      case "#projects":
+        return <ProjectsPage />;
+      case "#news":
+        return <NewsPage />;
+      default:
+        return <Home />;
+    }
+  };
 
   return (
     <ThemeProvider>
       <DataProvider>
-        <AuthProvider>
-          {isAdmin ? <AdminGate onBack={goBack} /> : <Site />}
-        </AuthProvider>
+        <AuthProvider>{renderPage()}</AuthProvider>
       </DataProvider>
     </ThemeProvider>
   );
