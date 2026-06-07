@@ -1,8 +1,10 @@
-import projects from "../data/projects";
+import { useData } from "../context/DataContext";
 import { ExternalLinkIcon, GitHubIcon } from "./Icons";
 import "./Projects.css";
 
 export default function Projects() {
+  const { projects } = useData();
+
   return (
     <section id="projects" className="projects">
       <div className="projects__inner">

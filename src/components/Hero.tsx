@@ -1,4 +1,4 @@
-import socials from "../data/socials";
+import { useData } from "../context/DataContext";
 import { GitHubIcon, TelegramIcon, EmailIcon, ChevronDownIcon } from "./Icons";
 import "./Hero.css";
 
@@ -9,6 +9,8 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 export default function Hero() {
+  const { socials } = useData();
+
   return (
     <section id="hero" className="hero">
       <div className="hero__bg-blur" />
@@ -33,7 +35,7 @@ export default function Hero() {
               className="hero__social-link"
               title={s.name}
             >
-              {iconMap[s.icon]}
+              {iconMap[s.icon] ?? <span>{s.name[0]}</span>}
             </a>
           ))}
         </div>

@@ -1,4 +1,4 @@
-import socials from "../data/socials";
+import { useData } from "../context/DataContext";
 import { GitHubIcon, TelegramIcon, EmailIcon } from "./Icons";
 import "./Footer.css";
 
@@ -9,6 +9,8 @@ const iconMap: Record<string, React.ReactNode> = {
 };
 
 export default function Footer() {
+  const { socials } = useData();
+
   return (
     <footer id="footer" className="footer">
       <div className="footer__inner">
@@ -32,7 +34,7 @@ export default function Footer() {
                 className="footer__social-link"
                 title={s.name}
               >
-                {iconMap[s.icon]}
+                {iconMap[s.icon] ?? <span>{s.name[0]}</span>}
               </a>
             ))}
           </div>

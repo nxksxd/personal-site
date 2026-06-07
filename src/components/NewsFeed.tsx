@@ -1,4 +1,4 @@
-import posts from "../data/posts";
+import { useData } from "../context/DataContext";
 import { CommentIcon } from "./Icons";
 import "./NewsFeed.css";
 
@@ -12,6 +12,8 @@ function formatDate(dateStr: string): string {
 }
 
 export default function NewsFeed() {
+  const { posts } = useData();
+
   return (
     <section id="news" className="news">
       <div className="news__inner">
