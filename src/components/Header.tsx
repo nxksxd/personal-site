@@ -4,9 +4,9 @@ import { SunIcon, MoonIcon, MenuIcon, CloseIcon } from "./Icons";
 import "./Header.css";
 
 const NAV_ITEMS = [
-  { label: "Обо мне", href: "#" },
   { label: "Проекты", href: "#projects" },
   { label: "Новости", href: "#news" },
+  { label: "Обо мне", href: "#hero" },
   { label: "Контакты", href: "#footer" },
 ];
 
@@ -16,11 +16,17 @@ export default function Header() {
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     setMenuOpen(false);
-    if (href === "#footer") {
+    if (href === "#footer" || href === "#hero") {
       e.preventDefault();
-      const footer = document.getElementById("footer");
-      if (footer) {
-        footer.scrollIntoView({ behavior: "smooth" });
+      if (window.location.hash !== "" && window.location.hash !== "#") {
+        window.location.hash = "";
+        setTimeout(() => {
+          const el = document.getElementById(href.slice(1));
+          el?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      } else {
+        const el = document.getElementById(href.slice(1));
+        el?.scrollIntoView({ behavior: "smooth" });
       }
     }
   };
