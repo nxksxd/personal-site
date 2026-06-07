@@ -3,7 +3,8 @@ import { useAuth } from "../../context/AuthContext";
 import "./AdminLogin.css";
 
 export default function AdminLogin({ onBack }: { onBack: () => void }) {
-  const { isFirstSetup, login, setupPassword } = useAuth();
+  const { isFirstSetup, login, setupFirstUser } = useAuth();
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -12,6 +13,11 @@ export default function AdminLogin({ onBack }: { onBack: () => void }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (!username.trim()) {
+      setError("Введите логин");
+      return;
+    }
 
     if (isFirstSetup) {
       if (password.length < 4) {
@@ -23,7 +29,7 @@ export default function AdminLogin({ onBack }: { onBack: () => void }) {
         return;
       }
       setLoading(true);
-      await setupPassword(password);
+      await setupFirstUser(username.trim(), password);
       setLoading(false);
     } else {
       if (!password) {
@@ -31,10 +37,10 @@ export default function AdminLogin({ onBack }: { onBack: () => void }) {
         return;
       }
       setLoading(true);
-      const ok = await login(password);
+      const ok = await login(username.trim(), password);
       setLoading(false);
       if (!ok) {
-        setError("Неверный пароль");
+        setError("Неверный логин или пароль");
         setPassword("");
       }
     }
@@ -50,16 +56,28 @@ export default function AdminLogin({ onBack }: { onBack: () => void }) {
         <div className="login__header">
           <div className="login__icon">🔒</div>
           <h1 className="login__title">
-            {isFirstSetup ? "Создание пароля" : "Вход в админ-панель"}
+            {isFirstSetup ? "Создание аккаунта" : "Вход в админ-панель"}
           </h1>
           <p className="login__subtitle">
             {isFirstSetup
-              ? "Придумайте пароль для доступа к админ-панели"
-              : "Введите пароль для доступа"}
+              ? "Создайте первый аккаунт администратора"
+              : "Введите логин и пароль для доступа"}
           </p>
         </div>
 
         <form className="login__form" onSubmit={handleSubmit}>
+          <div className="login__field">
+            <label className="login__label">Логин</label>
+            <input
+              className="login__input"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Введите логин"
+              autoFocus
+            />
+          </div>
+
           <div className="login__field">
             <label className="login__label">Пароль</label>
             <input
@@ -68,7 +86,6 @@ export default function AdminLogin({ onBack }: { onBack: () => void }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Введите пароль"
-              autoFocus
             />
           </div>
 
@@ -91,7 +108,7 @@ export default function AdminLogin({ onBack }: { onBack: () => void }) {
             {loading
               ? "..."
               : isFirstSetup
-                ? "Создать пароль"
+                ? "Создать аккаунт"
                 : "Войти"}
           </button>
         </form>

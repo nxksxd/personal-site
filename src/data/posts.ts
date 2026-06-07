@@ -3,6 +3,7 @@ export interface Post {
   date: string;
   title: string;
   content: string;
+  image?: string;
   comment?: string;
   tags?: string[];
 }
@@ -14,6 +15,7 @@ const posts: Post[] = [
     title: "Запуск личного сайта",
     content:
       "Наконец-то собрал свой персональный сайт! Здесь буду делиться новостями о проектах, мыслями и полезными ссылками. Сайт поддерживает тёмную и светлую тему — переключайте в шапке.",
+    image: "/images/placeholder-launch.svg",
     comment:
       "Давно хотел сделать что-то подобное. Теперь есть единое место для всех обновлений.",
     tags: ["анонс", "сайт"],
@@ -24,6 +26,7 @@ const posts: Post[] = [
     title: "FinAI v1.8 — новый импорт с дедупликацией",
     content:
       "Выпустил обновление FinAI с секцией «Дубликаты» при импорте выписок. Теперь можно включать и выключать проверку на дубли, а MerchantClassifier стал точнее распознавать категории.",
+    image: "/images/placeholder-finai.svg",
     comment:
       "Импорт был одной из самых сложных фич. Рад, что удалось реализовать красиво.",
     tags: ["FinAI", "релиз"],
@@ -34,6 +37,7 @@ const posts: Post[] = [
     title: "MTProxyMax — полная интернационализация",
     content:
       "Добавил полный перевод интерфейса MTProxyMax на русский и английский языки. Теперь при первом запуске можно выбрать язык.",
+    image: "/images/placeholder-proxy.svg",
     tags: ["MTProxyMax", "i18n"],
   },
 ];

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useData } from "../../context/DataContext";
 import type { Post } from "../../data/posts";
 
@@ -6,6 +6,7 @@ interface PostForm {
   title: string;
   date: string;
   content: string;
+  image: string;
   comment: string;
   tags: string;
 }
@@ -14,6 +15,7 @@ const emptyForm: PostForm = {
   title: "",
   date: new Date().toISOString().split("T")[0],
   content: "",
+  image: "",
   comment: "",
   tags: "",
 };
@@ -23,6 +25,7 @@ function postToForm(post: Post): PostForm {
     title: post.title,
     date: post.date,
     content: post.content,
+    image: post.image ?? "",
     comment: post.comment ?? "",
     tags: post.tags?.join(", ") ?? "",
   };
@@ -38,6 +41,7 @@ function formToPost(form: PostForm, id?: number): Omit<Post, "id"> & { id?: numb
     title: form.title,
     date: form.date,
     content: form.content,
+    image: form.image || undefined,
     comment: form.comment || undefined,
     tags: tags.length > 0 ? tags : undefined,
   };
@@ -48,6 +52,7 @@ export default function PostsEditor() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState<PostForm>(emptyForm);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleEdit = (post: Post) => {
     setEditingId(post.id);
@@ -82,6 +87,20 @@ export default function PostsEditor() {
     setForm((f) => ({ ...f, [field]: value }));
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        updateField("image", reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
   const renderForm = () => (
     <div className="admin__card" style={{ borderColor: "var(--accent)" }}>
       <h3 className="admin__card-title">
@@ -104,6 +123,54 @@ export default function PostsEditor() {
           value={form.date}
           onChange={(e) => updateField("date", e.target.value)}
         />
+      </div>
+      <div className="admin__field">
+        <label className="admin__label">Обложка</label>
+        <div className="admin__image-field">
+          <input
+            className="admin__input"
+            value={form.image}
+            onChange={(e) => updateField("image", e.target.value)}
+            placeholder="URL картинки или загрузите файл"
+          />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={handleFileUpload}
+          />
+          <button
+            className="admin__btn admin__btn--secondary"
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            style={{ whiteSpace: "nowrap" }}
+          >
+            Загрузить
+          </button>
+        </div>
+        {form.image && (
+          <div className="admin__image-preview">
+            <img
+              src={form.image}
+              alt="Превью"
+              style={{
+                maxWidth: "100%",
+                maxHeight: 160,
+                borderRadius: 8,
+                marginTop: 8,
+                objectFit: "cover",
+              }}
+            />
+            <button
+              className="admin__btn admin__btn--danger admin__btn--small"
+              style={{ marginTop: 4 }}
+              onClick={() => updateField("image", "")}
+            >
+              Убрать
+            </button>
+          </div>
+        )}
       </div>
       <div className="admin__field">
         <label className="admin__label">Содержание *</label>
@@ -163,7 +230,21 @@ export default function PostsEditor() {
           editingId === post.id ? null : (
             <div key={post.id} className="admin__card">
               <div className="admin__card-header">
-                <h3 className="admin__card-title">{post.title}</h3>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  {post.image && (
+                    <img
+                      src={post.image}
+                      alt=""
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 8,
+                        objectFit: "cover",
+                      }}
+                    />
+                  )}
+                  <h3 className="admin__card-title">{post.title}</h3>
+                </div>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button
                     className="admin__btn admin__btn--secondary admin__btn--small"

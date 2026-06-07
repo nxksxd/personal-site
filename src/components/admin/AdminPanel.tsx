@@ -4,14 +4,15 @@ import { useData } from "../../context/DataContext";
 import PostsEditor from "./PostsEditor";
 import ProjectsEditor from "./ProjectsEditor";
 import SocialsEditor from "./SocialsEditor";
+import UsersEditor from "./UsersEditor";
 import "./AdminPanel.css";
 
-type Tab = "posts" | "projects" | "socials";
+type Tab = "posts" | "projects" | "socials" | "users";
 
 export default function AdminPanel({ onBack }: { onBack: () => void }) {
   const [tab, setTab] = useState<Tab>("posts");
   const { resetAll } = useData();
-  const { logout } = useAuth();
+  const { logout, currentUser } = useAuth();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   return (
@@ -25,6 +26,9 @@ export default function AdminPanel({ onBack }: { onBack: () => void }) {
             <h1 className="admin__title">Админ-панель</h1>
           </div>
           <div className="admin__header-right">
+            {currentUser && (
+              <span className="admin__user-badge">{currentUser.username}</span>
+            )}
             <button
               className="admin__reset-btn"
               onClick={() => setShowResetConfirm(true)}
@@ -85,12 +89,19 @@ export default function AdminPanel({ onBack }: { onBack: () => void }) {
           >
             Соцсети
           </button>
+          <button
+            className={`admin__tab ${tab === "users" ? "admin__tab--active" : ""}`}
+            onClick={() => setTab("users")}
+          >
+            Пользователи
+          </button>
         </div>
 
         <div className="admin__content">
           {tab === "posts" && <PostsEditor />}
           {tab === "projects" && <ProjectsEditor />}
           {tab === "socials" && <SocialsEditor />}
+          {tab === "users" && <UsersEditor />}
         </div>
       </div>
     </div>

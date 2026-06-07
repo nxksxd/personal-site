@@ -6,15 +6,28 @@ import {
   type ReactNode,
 } from "react";
 
+export interface AdminUser {
+  id: number;
+  username: string;
+  passwordHash: string;
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
   isFirstSetup: boolean;
-  login: (password: string) => Promise<boolean>;
-  setupPassword: (password: string) => Promise<void>;
+  currentUser: AdminUser | null;
+  users: AdminUser[];
+  login: (username: string, password: string) => Promise<boolean>;
+  setupFirstUser: (username: string, password: string) => Promise<void>;
+  addUser: (username: string, password: string) => Promise<boolean>;
+  deleteUser: (id: number) => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const USERS_KEY = "admin_users";
+const OLD_HASH_KEY = "admin_password_hash";
 
 async function hashPassword(password: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -24,37 +37,112 @@ async function hashPassword(password: string): Promise<string> {
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+function loadUsers(): AdminUser[] {
+  try {
+    const stored = localStorage.getItem(USERS_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch {
+    /* ignore */
+  }
+
+  const oldHash = localStorage.getItem(OLD_HASH_KEY);
+  if (oldHash) {
+    const migrated: AdminUser[] = [
+      { id: 1, username: "admin", passwordHash: oldHash },
+    ];
+    localStorage.setItem(USERS_KEY, JSON.stringify(migrated));
+    localStorage.removeItem(OLD_HASH_KEY);
+    return migrated;
+  }
+
+  return [];
+}
+
+function saveUsers(users: AdminUser[]) {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const [users, setUsers] = useState<AdminUser[]>(loadUsers);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isFirstSetup, setIsFirstSetup] = useState(
-    () => !localStorage.getItem("admin_password_hash")
+  const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
+
+  const isFirstSetup = users.length === 0;
+
+  const login = useCallback(
+    async (username: string, password: string): Promise<boolean> => {
+      const hash = await hashPassword(password);
+      const found = users.find(
+        (u) => u.username === username && u.passwordHash === hash
+      );
+      if (found) {
+        setIsAuthenticated(true);
+        setCurrentUser(found);
+        return true;
+      }
+      return false;
+    },
+    [users]
   );
 
-  const login = useCallback(async (password: string): Promise<boolean> => {
-    const stored = localStorage.getItem("admin_password_hash");
-    if (!stored) return false;
-    const hash = await hashPassword(password);
-    if (hash === stored) {
+  const setupFirstUser = useCallback(
+    async (username: string, password: string) => {
+      const hash = await hashPassword(password);
+      const newUser: AdminUser = { id: 1, username, passwordHash: hash };
+      const updated = [newUser];
+      setUsers(updated);
+      saveUsers(updated);
       setIsAuthenticated(true);
-      return true;
-    }
-    return false;
-  }, []);
+      setCurrentUser(newUser);
+    },
+    []
+  );
 
-  const setupPassword = useCallback(async (password: string) => {
-    const hash = await hashPassword(password);
-    localStorage.setItem("admin_password_hash", hash);
-    setIsFirstSetup(false);
-    setIsAuthenticated(true);
-  }, []);
+  const addUser = useCallback(
+    async (username: string, password: string): Promise<boolean> => {
+      if (users.some((u) => u.username === username)) return false;
+      const hash = await hashPassword(password);
+      const maxId = users.reduce((m, u) => Math.max(m, u.id), 0);
+      const newUser: AdminUser = {
+        id: maxId + 1,
+        username,
+        passwordHash: hash,
+      };
+      const updated = [...users, newUser];
+      setUsers(updated);
+      saveUsers(updated);
+      return true;
+    },
+    [users]
+  );
+
+  const deleteUser = useCallback(
+    (id: number) => {
+      const updated = users.filter((u) => u.id !== id);
+      setUsers(updated);
+      saveUsers(updated);
+    },
+    [users]
+  );
 
   const logout = useCallback(() => {
     setIsAuthenticated(false);
+    setCurrentUser(null);
   }, []);
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, isFirstSetup, login, setupPassword, logout }}
+      value={{
+        isAuthenticated,
+        isFirstSetup,
+        currentUser,
+        users,
+        login,
+        setupFirstUser,
+        addUser,
+        deleteUser,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>
