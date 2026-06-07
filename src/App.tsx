@@ -31,8 +31,8 @@ function Home() {
     <>
       <Header />
       <main>
-        <Hero />
         <HomeSection />
+        <Hero />
       </main>
       <Footer />
     </>

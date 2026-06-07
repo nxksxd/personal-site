@@ -1,5 +1,5 @@
 import { useData } from "../context/DataContext";
-import { GitHubIcon, TelegramIcon, EmailIcon, ChevronDownIcon } from "./Icons";
+import { GitHubIcon, TelegramIcon, EmailIcon } from "./Icons";
 import "./Hero.css";
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -41,9 +41,7 @@ export default function Hero() {
         </div>
       </div>
 
-      <a href="#projects" className="hero__scroll-hint" aria-label="Scroll down">
-        <ChevronDownIcon size={28} />
-      </a>
+
     </section>
   );
 }

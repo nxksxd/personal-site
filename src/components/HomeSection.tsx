@@ -1,5 +1,6 @@
 import { useData } from "../context/DataContext";
 import { ExternalLinkIcon, GitHubIcon, CommentIcon } from "./Icons";
+import "./Projects.css";
 import "./HomeSection.css";
 
 function formatDate(dateStr: string): string {
