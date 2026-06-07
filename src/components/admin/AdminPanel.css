@@ -24,6 +24,28 @@
   gap: 16px;
 }
 
+.admin__header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin__logout-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 16px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.admin__logout-btn:hover {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
 .admin__back-btn {
   background: var(--surface);
   border: 1px solid var(--border);

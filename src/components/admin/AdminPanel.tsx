@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 import { useData } from "../../context/DataContext";
 import PostsEditor from "./PostsEditor";
 import ProjectsEditor from "./ProjectsEditor";
@@ -10,6 +11,7 @@ type Tab = "posts" | "projects" | "socials";
 export default function AdminPanel({ onBack }: { onBack: () => void }) {
   const [tab, setTab] = useState<Tab>("posts");
   const { resetAll } = useData();
+  const { logout } = useAuth();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   return (
@@ -22,12 +24,23 @@ export default function AdminPanel({ onBack }: { onBack: () => void }) {
             </button>
             <h1 className="admin__title">Админ-панель</h1>
           </div>
-          <button
-            className="admin__reset-btn"
-            onClick={() => setShowResetConfirm(true)}
-          >
-            Сбросить всё
-          </button>
+          <div className="admin__header-right">
+            <button
+              className="admin__reset-btn"
+              onClick={() => setShowResetConfirm(true)}
+            >
+              Сбросить всё
+            </button>
+            <button
+              className="admin__logout-btn"
+              onClick={() => {
+                logout();
+                onBack();
+              }}
+            >
+              Выйти
+            </button>
+          </div>
         </div>
 
         {showResetConfirm && (
