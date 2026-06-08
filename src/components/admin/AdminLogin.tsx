@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/auth-context";
 import "./AdminLogin.css";
 
 export default function AdminLogin({ onBack }: { onBack: () => void }) {
-  const { isFirstSetup, login, setupFirstUser } = useAuth();
+  const { isFirstSetup, authLoading, login, setupFirstUser } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -29,8 +29,13 @@ export default function AdminLogin({ onBack }: { onBack: () => void }) {
         return;
       }
       setLoading(true);
-      await setupFirstUser(username.trim(), password);
-      setLoading(false);
+      try {
+        await setupFirstUser(username.trim(), password);
+      } catch {
+        setError("Не удалось создать аккаунт. Попробуйте ещё раз.");
+      } finally {
+        setLoading(false);
+      }
     } else {
       if (!password) {
         setError("Введите пароль");
@@ -45,6 +50,16 @@ export default function AdminLogin({ onBack }: { onBack: () => void }) {
       }
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="login">
+        <div className="login__card">
+          <p className="login__subtitle">Загрузка…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="login">

@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useData } from "../../context/DataContext";
+import { useData } from "../../context/data-context";
 import type { Post } from "../../data/posts";
 
 interface PostForm {

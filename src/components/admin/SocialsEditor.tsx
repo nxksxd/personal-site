@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useData } from "../../context/DataContext";
+import { useData } from "../../context/data-context";
 import type { Social } from "../../data/socials";
 
 const ICON_OPTIONS = ["github", "telegram", "email"];

@@ -1,133 +1,149 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { api, getToken, setToken } from "../lib/api";
+import { AuthContext, type AdminUser } from "./auth-context";
 
-export interface AdminUser {
-  id: number;
-  username: string;
-  passwordHash: string;
+interface AuthResult {
+  token: string;
+  user: AdminUser;
 }
 
-interface AuthContextType {
-  isAuthenticated: boolean;
-  isFirstSetup: boolean;
-  currentUser: AdminUser | null;
-  users: AdminUser[];
-  login: (username: string, password: string) => Promise<boolean>;
-  setupFirstUser: (username: string, password: string) => Promise<void>;
-  addUser: (username: string, password: string) => Promise<boolean>;
-  deleteUser: (id: number) => void;
-  logout: () => void;
-}
+const USER_KEY = "auth_user";
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const USERS_KEY = "admin_users";
-const OLD_HASH_KEY = "admin_password_hash";
-
-async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-function loadUsers(): AdminUser[] {
+function loadStoredUser(): AdminUser | null {
   try {
-    const stored = localStorage.getItem(USERS_KEY);
-    if (stored) return JSON.parse(stored);
+    const raw = localStorage.getItem(USER_KEY);
+    return raw ? (JSON.parse(raw) as AdminUser) : null;
   } catch {
-    /* ignore */
+    return null;
   }
-
-  const oldHash = localStorage.getItem(OLD_HASH_KEY);
-  if (oldHash) {
-    const migrated: AdminUser[] = [
-      { id: 1, username: "admin", passwordHash: oldHash },
-    ];
-    localStorage.setItem(USERS_KEY, JSON.stringify(migrated));
-    localStorage.removeItem(OLD_HASH_KEY);
-    return migrated;
-  }
-
-  return [];
 }
 
-function saveUsers(users: AdminUser[]) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+function storeUser(user: AdminUser | null) {
+  if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
+  else localStorage.removeItem(USER_KEY);
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [users, setUsers] = useState<AdminUser[]>(loadUsers);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [currentUser, setCurrentUser] = useState<AdminUser | null>(() =>
+    getToken() ? loadStoredUser() : null
+  );
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+    () => !!getToken() && !!loadStoredUser()
+  );
+  const [isFirstSetup, setIsFirstSetup] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
 
-  const isFirstSetup = users.length === 0;
+  const refreshUsers = useCallback(async () => {
+    try {
+      const list = await api.get<AdminUser[]>("/api/auth/users");
+      setUsers(list);
+    } catch {
+      /* not authorized yet */
+    }
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const status = await api.get<{ has_users: boolean }>(
+          "/api/auth/status"
+        );
+        if (active) setIsFirstSetup(!status.has_users);
+      } catch {
+        /* backend unreachable */
+      } finally {
+        if (active) setAuthLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let active = true;
+    (async () => {
+      try {
+        const list = await api.get<AdminUser[]>("/api/auth/users");
+        if (active) setUsers(list);
+      } catch {
+        /* not authorized */
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [isAuthenticated]);
+
+  const applyAuth = useCallback((result: AuthResult) => {
+    setToken(result.token);
+    storeUser(result.user);
+    setCurrentUser(result.user);
+    setIsAuthenticated(true);
+    setIsFirstSetup(false);
+  }, []);
 
   const login = useCallback(
     async (username: string, password: string): Promise<boolean> => {
-      const hash = await hashPassword(password);
-      const found = users.find(
-        (u) => u.username === username && u.passwordHash === hash
-      );
-      if (found) {
-        setIsAuthenticated(true);
-        setCurrentUser(found);
+      try {
+        const result = await api.post<AuthResult>("/api/auth/login", {
+          username,
+          password,
+        });
+        applyAuth(result);
         return true;
+      } catch {
+        return false;
       }
-      return false;
     },
-    [users]
+    [applyAuth]
   );
 
   const setupFirstUser = useCallback(
     async (username: string, password: string) => {
-      const hash = await hashPassword(password);
-      const newUser: AdminUser = { id: 1, username, passwordHash: hash };
-      const updated = [newUser];
-      setUsers(updated);
-      saveUsers(updated);
-      setIsAuthenticated(true);
-      setCurrentUser(newUser);
+      const result = await api.post<AuthResult>("/api/auth/setup", {
+        username,
+        password,
+      });
+      applyAuth(result);
     },
-    []
+    [applyAuth]
   );
 
   const addUser = useCallback(
     async (username: string, password: string): Promise<boolean> => {
-      if (users.some((u) => u.username === username)) return false;
-      const hash = await hashPassword(password);
-      const maxId = users.reduce((m, u) => Math.max(m, u.id), 0);
-      const newUser: AdminUser = {
-        id: maxId + 1,
-        username,
-        passwordHash: hash,
-      };
-      const updated = [...users, newUser];
-      setUsers(updated);
-      saveUsers(updated);
-      return true;
+      try {
+        await api.post<AdminUser>(
+          "/api/auth/users",
+          { username, password },
+          true
+        );
+        await refreshUsers();
+        return true;
+      } catch {
+        return false;
+      }
     },
-    [users]
+    [refreshUsers]
   );
 
   const deleteUser = useCallback(
-    (id: number) => {
-      const updated = users.filter((u) => u.id !== id);
-      setUsers(updated);
-      saveUsers(updated);
+    async (id: number) => {
+      await api.del(`/api/auth/users/${id}`, true);
+      await refreshUsers();
     },
-    [users]
+    [refreshUsers]
   );
 
   const logout = useCallback(() => {
+    setToken(null);
+    storeUser(null);
     setIsAuthenticated(false);
     setCurrentUser(null);
+    setUsers([]);
   }, []);
 
   return (
@@ -135,6 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         isAuthenticated,
         isFirstSetup,
+        authLoading,
         currentUser,
         users,
         login,
@@ -147,10 +164,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be inside AuthProvider");
-  return ctx;
 }
