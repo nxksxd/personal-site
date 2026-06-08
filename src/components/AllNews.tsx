@@ -1,4 +1,4 @@
-import { useData } from "../context/DataContext";
+import { useData } from "../context/data-context";
 import { CommentIcon } from "./Icons";
 import "./AllNews.css";
 

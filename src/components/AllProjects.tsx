@@ -1,5 +1,6 @@
-import { useData } from "../context/DataContext";
+import { useData } from "../context/data-context";
 import { ExternalLinkIcon, GitHubIcon } from "./Icons";
+import ProjectMedia from "./ProjectMedia";
 import "./AllProjects.css";
 
 export default function AllProjects() {
@@ -17,40 +18,43 @@ export default function AllProjects() {
         <div className="all-projects__grid">
           {projects.map((p) => (
             <article key={p.id} className="project-card">
-              <div className="project-card__header">
-                <h3 className="project-card__title">{p.title}</h3>
-                <div className="project-card__links">
-                  {p.github && (
-                    <a
-                      href={p.github}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="project-card__icon-link"
-                      title="GitHub"
-                    >
-                      <GitHubIcon size={18} />
-                    </a>
-                  )}
-                  {p.link !== "#" && (
-                    <a
-                      href={p.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="project-card__icon-link"
-                      title="Открыть"
-                    >
-                      <ExternalLinkIcon size={16} />
-                    </a>
-                  )}
+              <ProjectMedia title={p.title} image={p.image} />
+              <div className="project-card__body">
+                <div className="project-card__header">
+                  <h3 className="project-card__title">{p.title}</h3>
+                  <div className="project-card__links">
+                    {p.github && (
+                      <a
+                        href={p.github}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="project-card__icon-link"
+                        title="GitHub"
+                      >
+                        <GitHubIcon size={18} />
+                      </a>
+                    )}
+                    {p.link !== "#" && (
+                      <a
+                        href={p.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="project-card__icon-link"
+                        title="Открыть"
+                      >
+                        <ExternalLinkIcon size={16} />
+                      </a>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <p className="project-card__desc">{p.description}</p>
-              <div className="project-card__tags">
-                {p.tags.map((tag) => (
-                  <span key={tag} className="project-card__tag">
-                    {tag}
-                  </span>
-                ))}
+                <p className="project-card__desc">{p.description}</p>
+                <div className="project-card__tags">
+                  {p.tags.map((tag) => (
+                    <span key={tag} className="project-card__tag">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
             </article>
           ))}

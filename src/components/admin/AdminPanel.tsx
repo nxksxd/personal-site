@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
-import { useData } from "../../context/DataContext";
+import { useAuth } from "../../context/auth-context";
+import { useData } from "../../context/data-context";
 import PostsEditor from "./PostsEditor";
 import ProjectsEditor from "./ProjectsEditor";
 import SocialsEditor from "./SocialsEditor";

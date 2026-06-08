@@ -1,148 +1,123 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  type ReactNode,
-} from "react";
-import defaultProjects, { type Project } from "../data/projects";
-import defaultPosts, { type Post } from "../data/posts";
-import defaultSocials, { type Social } from "../data/socials";
-
-interface DataContextType {
-  projects: Project[];
-  posts: Post[];
-  socials: Social[];
-  setProjects: (projects: Project[]) => void;
-  setPosts: (posts: Post[]) => void;
-  setSocials: (socials: Social[]) => void;
-  addProject: (project: Omit<Project, "id">) => void;
-  updateProject: (project: Project) => void;
-  deleteProject: (id: number) => void;
-  addPost: (post: Omit<Post, "id">) => void;
-  updatePost: (post: Post) => void;
-  deletePost: (id: number) => void;
-  addSocial: (social: Omit<Social, "id">) => void;
-  updateSocial: (social: Social) => void;
-  deleteSocial: (id: number) => void;
-  resetAll: () => void;
-}
-
-const DataContext = createContext<DataContextType | undefined>(undefined);
-
-function loadFromStorage<T>(key: string, fallback: T): T {
-  try {
-    const stored = localStorage.getItem(key);
-    if (stored) return JSON.parse(stored);
-  } catch {
-    /* ignore */
-  }
-  return fallback;
-}
-
-function saveToStorage<T>(key: string, data: T) {
-  localStorage.setItem(key, JSON.stringify(data));
-}
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import type { Project } from "../data/projects";
+import type { Post } from "../data/posts";
+import type { Social } from "../data/socials";
+import { api } from "../lib/api";
+import { DataContext } from "./data-context";
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [projects, _setProjects] = useState<Project[]>(() =>
-    loadFromStorage("site_projects", defaultProjects)
-  );
-  const [posts, _setPosts] = useState<Post[]>(() =>
-    loadFromStorage("site_posts", defaultPosts)
-  );
-  const [socials, _setSocials] = useState<Social[]>(() =>
-    loadFromStorage("site_socials", defaultSocials)
-  );
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [socials, setSocials] = useState<Social[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const setProjects = useCallback((p: Project[]) => {
-    _setProjects(p);
-    saveToStorage("site_projects", p);
+  const reload = useCallback(async () => {
+    try {
+      const [p, n, s] = await Promise.all([
+        api.get<Project[]>("/api/projects"),
+        api.get<Post[]>("/api/posts"),
+        api.get<Social[]>("/api/socials"),
+      ]);
+      setProjects(p);
+      setPosts(n);
+      setSocials(s);
+      setError(null);
+    } catch {
+      setError("Не удалось загрузить данные с сервера");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const setPosts = useCallback((p: Post[]) => {
-    _setPosts(p);
-    saveToStorage("site_posts", p);
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const [p, n, s] = await Promise.all([
+          api.get<Project[]>("/api/projects"),
+          api.get<Post[]>("/api/posts"),
+          api.get<Social[]>("/api/socials"),
+        ]);
+        if (!active) return;
+        setProjects(p);
+        setPosts(n);
+        setSocials(s);
+        setError(null);
+      } catch {
+        if (active) setError("Не удалось загрузить данные с сервера");
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const setSocials = useCallback((s: Social[]) => {
-    _setSocials(s);
-    saveToStorage("site_socials", s);
+  const addProject = useCallback(async (project: Omit<Project, "id">) => {
+    const created = await api.post<Project>("/api/projects", project, true);
+    setProjects((prev) => [...prev, created]);
   }, []);
 
-  const addProject = useCallback(
-    (project: Omit<Project, "id">) => {
-      const maxId = projects.reduce((m, p) => Math.max(m, p.id), 0);
-      const updated = [...projects, { ...project, id: maxId + 1 }];
-      setProjects(updated);
-    },
-    [projects, setProjects]
-  );
+  const updateProject = useCallback(async (project: Project) => {
+    const updated = await api.put<Project>(
+      `/api/projects/${project.id}`,
+      project,
+      true
+    );
+    setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+  }, []);
 
-  const updateProject = useCallback(
-    (project: Project) => {
-      setProjects(projects.map((p) => (p.id === project.id ? project : p)));
-    },
-    [projects, setProjects]
-  );
+  const deleteProject = useCallback(async (id: number) => {
+    await api.del(`/api/projects/${id}`, true);
+    setProjects((prev) => prev.filter((p) => p.id !== id));
+  }, []);
 
-  const deleteProject = useCallback(
-    (id: number) => {
-      setProjects(projects.filter((p) => p.id !== id));
-    },
-    [projects, setProjects]
-  );
+  const addPost = useCallback(async (post: Omit<Post, "id">) => {
+    const created = await api.post<Post>("/api/posts", post, true);
+    setPosts((prev) =>
+      [created, ...prev].sort((a, b) => b.date.localeCompare(a.date))
+    );
+  }, []);
 
-  const addPost = useCallback(
-    (post: Omit<Post, "id">) => {
-      const maxId = posts.reduce((m, p) => Math.max(m, p.id), 0);
-      const updated = [{ ...post, id: maxId + 1 }, ...posts];
-      setPosts(updated);
-    },
-    [posts, setPosts]
-  );
+  const updatePost = useCallback(async (post: Post) => {
+    const updated = await api.put<Post>(`/api/posts/${post.id}`, post, true);
+    setPosts((prev) =>
+      prev
+        .map((p) => (p.id === updated.id ? updated : p))
+        .sort((a, b) => b.date.localeCompare(a.date))
+    );
+  }, []);
 
-  const updatePost = useCallback(
-    (post: Post) => {
-      setPosts(posts.map((p) => (p.id === post.id ? post : p)));
-    },
-    [posts, setPosts]
-  );
+  const deletePost = useCallback(async (id: number) => {
+    await api.del(`/api/posts/${id}`, true);
+    setPosts((prev) => prev.filter((p) => p.id !== id));
+  }, []);
 
-  const deletePost = useCallback(
-    (id: number) => {
-      setPosts(posts.filter((p) => p.id !== id));
-    },
-    [posts, setPosts]
-  );
+  const addSocial = useCallback(async (social: Omit<Social, "id">) => {
+    const created = await api.post<Social>("/api/socials", social, true);
+    setSocials((prev) => [...prev, created]);
+  }, []);
 
-  const addSocial = useCallback(
-    (social: Omit<Social, "id">) => {
-      const maxId = socials.reduce((m, s) => Math.max(m, s.id), 0);
-      setSocials([...socials, { ...social, id: maxId + 1 }]);
-    },
-    [socials, setSocials]
-  );
+  const updateSocial = useCallback(async (social: Social) => {
+    const updated = await api.put<Social>(
+      `/api/socials/${social.id}`,
+      social,
+      true
+    );
+    setSocials((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+  }, []);
 
-  const updateSocial = useCallback(
-    (social: Social) => {
-      setSocials(socials.map((s) => (s.id === social.id ? social : s)));
-    },
-    [socials, setSocials]
-  );
+  const deleteSocial = useCallback(async (id: number) => {
+    await api.del(`/api/socials/${id}`, true);
+    setSocials((prev) => prev.filter((s) => s.id !== id));
+  }, []);
 
-  const deleteSocial = useCallback(
-    (id: number) => {
-      setSocials(socials.filter((s) => s.id !== id));
-    },
-    [socials, setSocials]
-  );
-
-  const resetAll = useCallback(() => {
-    setProjects(defaultProjects);
-    setPosts(defaultPosts);
-    setSocials(defaultSocials);
-  }, [setProjects, setPosts, setSocials]);
+  const resetAll = useCallback(async () => {
+    await api.post("/api/reset", undefined, true);
+    await reload();
+  }, [reload]);
 
   return (
     <DataContext.Provider
@@ -150,9 +125,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
         projects,
         posts,
         socials,
-        setProjects,
-        setPosts,
-        setSocials,
+        loading,
+        error,
+        reload,
         addProject,
         updateProject,
         deleteProject,
@@ -168,10 +143,4 @@ export function DataProvider({ children }: { children: ReactNode }) {
       {children}
     </DataContext.Provider>
   );
-}
-
-export function useData() {
-  const ctx = useContext(DataContext);
-  if (!ctx) throw new Error("useData must be inside DataProvider");
-  return ctx;
 }

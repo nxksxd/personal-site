@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useTheme } from "../context/ThemeContext";
+import { useTheme } from "../context/theme-context";
 import { SunIcon, MoonIcon, MenuIcon, CloseIcon } from "./Icons";
 import "./Header.css";
 
@@ -19,7 +19,7 @@ export default function Header() {
     if (href === "#footer" || href === "#hero") {
       e.preventDefault();
       if (window.location.hash !== "" && window.location.hash !== "#") {
-        window.location.hash = "";
+        window.location.assign("#");
         setTimeout(() => {
           const el = document.getElementById(href.slice(1));
           el?.scrollIntoView({ behavior: "smooth" });
@@ -33,6 +33,9 @@ export default function Header() {
 
   return (
     <header className="header">
+      <a href="#main" className="header__skip-link">
+        К основному содержимому
+      </a>
       <div className="header__inner">
         <a
           href="#"
@@ -42,7 +45,10 @@ export default function Header() {
           nxksxd<span className="header__logo-dot">.</span>
         </a>
 
-        <nav className={`header__nav ${menuOpen ? "header__nav--open" : ""}`}>
+        <nav
+          id="primary-nav"
+          className={`header__nav ${menuOpen ? "header__nav--open" : ""}`}
+        >
           {NAV_ITEMS.map((item) => (
             <a
               key={item.href + item.label}
@@ -67,6 +73,8 @@ export default function Header() {
             className="header__menu-btn"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+            aria-controls="primary-nav"
           >
             {menuOpen ? <CloseIcon /> : <MenuIcon />}
           </button>
