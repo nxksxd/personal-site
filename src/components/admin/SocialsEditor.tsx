@@ -17,6 +17,7 @@ export default function SocialsEditor() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState<SocialForm>(emptyForm);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const handleEdit = (social: Social) => {
     setEditingId(social.id);
@@ -24,27 +25,39 @@ export default function SocialsEditor() {
     setShowNew(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name || !form.url) return;
-    if (editingId !== null) {
-      updateSocial({ id: editingId, ...form });
-      setEditingId(null);
-    } else {
-      addSocial(form);
-      setShowNew(false);
+    try {
+      if (editingId !== null) {
+        await updateSocial({ id: editingId, ...form });
+        setEditingId(null);
+      } else {
+        await addSocial(form);
+        setShowNew(false);
+      }
+      setForm(emptyForm);
+      setSaveError(null);
+    } catch {
+      setSaveError(
+        "Не удалось сохранить. Проверьте подключение и войдите заново."
+      );
     }
-    setForm(emptyForm);
   };
 
   const handleCancel = () => {
     setEditingId(null);
     setShowNew(false);
     setForm(emptyForm);
+    setSaveError(null);
   };
 
-  const handleDelete = (id: number) => {
-    deleteSocial(id);
-    if (editingId === id) handleCancel();
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteSocial(id);
+      if (editingId === id) handleCancel();
+    } catch {
+      setSaveError("Не удалось удалить ссылку.");
+    }
   };
 
   const updateField = (field: keyof SocialForm, value: string) => {
@@ -56,6 +69,7 @@ export default function SocialsEditor() {
       <h3 className="admin__card-title">
         {editingId !== null ? "Редактирование ссылки" : "Новая ссылка"}
       </h3>
+      {saveError && <p className="admin__error">{saveError}</p>}
       <div className="admin__field">
         <label className="admin__label">Название *</label>
         <input

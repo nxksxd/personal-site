@@ -52,6 +52,7 @@ export default function PostsEditor() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState<PostForm>(emptyForm);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleEdit = (post: Post) => {
@@ -60,27 +61,39 @@ export default function PostsEditor() {
     setShowNew(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.title || !form.content) return;
-    if (editingId !== null) {
-      updatePost(formToPost(form, editingId) as Post);
-      setEditingId(null);
-    } else {
-      addPost(formToPost(form));
-      setShowNew(false);
+    try {
+      if (editingId !== null) {
+        await updatePost(formToPost(form, editingId) as Post);
+        setEditingId(null);
+      } else {
+        await addPost(formToPost(form));
+        setShowNew(false);
+      }
+      setForm(emptyForm);
+      setSaveError(null);
+    } catch {
+      setSaveError(
+        "Не удалось сохранить. Проверьте подключение и войдите заново."
+      );
     }
-    setForm(emptyForm);
   };
 
   const handleCancel = () => {
     setEditingId(null);
     setShowNew(false);
     setForm(emptyForm);
+    setSaveError(null);
   };
 
-  const handleDelete = (id: number) => {
-    deletePost(id);
-    if (editingId === id) handleCancel();
+  const handleDelete = async (id: number) => {
+    try {
+      await deletePost(id);
+      if (editingId === id) handleCancel();
+    } catch {
+      setSaveError("Не удалось удалить запись.");
+    }
   };
 
   const updateField = (field: keyof PostForm, value: string) => {
@@ -106,6 +119,7 @@ export default function PostsEditor() {
       <h3 className="admin__card-title">
         {editingId !== null ? "Редактирование поста" : "Новый пост"}
       </h3>
+      {saveError && <p className="admin__error">{saveError}</p>}
       <div className="admin__field">
         <label className="admin__label">Заголовок *</label>
         <input

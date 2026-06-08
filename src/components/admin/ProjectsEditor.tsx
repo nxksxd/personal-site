@@ -55,6 +55,7 @@ export default function ProjectsEditor() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState<ProjectForm>(emptyForm);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleEdit = (project: Project) => {
@@ -63,27 +64,39 @@ export default function ProjectsEditor() {
     setShowNew(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.title || !form.description) return;
-    if (editingId !== null) {
-      updateProject(formToProject(form, editingId) as Project);
-      setEditingId(null);
-    } else {
-      addProject(formToProject(form));
-      setShowNew(false);
+    try {
+      if (editingId !== null) {
+        await updateProject(formToProject(form, editingId) as Project);
+        setEditingId(null);
+      } else {
+        await addProject(formToProject(form));
+        setShowNew(false);
+      }
+      setForm(emptyForm);
+      setSaveError(null);
+    } catch {
+      setSaveError(
+        "Не удалось сохранить. Проверьте подключение и войдите заново."
+      );
     }
-    setForm(emptyForm);
   };
 
   const handleCancel = () => {
     setEditingId(null);
     setShowNew(false);
     setForm(emptyForm);
+    setSaveError(null);
   };
 
-  const handleDelete = (id: number) => {
-    deleteProject(id);
-    if (editingId === id) handleCancel();
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteProject(id);
+      if (editingId === id) handleCancel();
+    } catch {
+      setSaveError("Не удалось удалить проект.");
+    }
   };
 
   const updateField = (field: keyof ProjectForm, value: string) => {
@@ -109,6 +122,7 @@ export default function ProjectsEditor() {
       <h3 className="admin__card-title">
         {editingId !== null ? "Редактирование проекта" : "Новый проект"}
       </h3>
+      {saveError && <p className="admin__error">{saveError}</p>}
       <div className="admin__field">
         <label className="admin__label">Название *</label>
         <input

@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUsers = useCallback(async () => {
     try {
-      const list = await api.get<AdminUser[]>("/api/auth/users");
+      const list = await api.get<AdminUser[]>("/api/auth/users", true);
       setUsers(list);
     } catch {
       /* not authorized yet */
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let active = true;
     (async () => {
       try {
-        const list = await api.get<AdminUser[]>("/api/auth/users");
+        const list = await api.get<AdminUser[]>("/api/auth/users", true);
         if (active) setUsers(list);
       } catch {
         /* not authorized */
