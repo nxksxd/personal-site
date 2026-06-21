@@ -132,6 +132,12 @@
   }
 }
 
+@media (max-width: 600px) {
+  .header__inner {
+    padding: 0 16px;
+  }
+}
+
 .header__skip-link {
   position: absolute;
   left: 12px;

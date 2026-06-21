@@ -143,8 +143,37 @@
 }
 
 @media (max-width: 600px) {
+  .projects {
+    padding: 88px 16px 56px;
+  }
+
   .projects__grid {
     grid-template-columns: 1fr;
+  }
+
+  .project-card__body {
+    padding: 20px 20px 24px;
+  }
+
+  .project-card__title {
+    font-size: 1.15rem;
+  }
+
+  .project-card__monogram {
+    font-size: 2.6rem;
+  }
+
+  /* Bigger touch targets for the card link icons, kept visually aligned. */
+  .project-card__links {
+    gap: 4px;
+    margin: -8px -8px 0 0;
+  }
+
+  .project-card__icon-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
   }
 }
 

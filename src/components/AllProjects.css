@@ -49,14 +49,19 @@
 
 @media (max-width: 600px) {
   .all-projects {
-    padding: 80px 16px 40px;
+    padding: 88px 16px 48px;
   }
 
   .all-projects__title {
     font-size: 1.7rem;
   }
 
+  .all-projects__subtitle {
+    margin-bottom: 28px;
+  }
+
   .all-projects__grid {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 }

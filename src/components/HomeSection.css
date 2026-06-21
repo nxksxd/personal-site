@@ -158,15 +158,27 @@
 
 @media (max-width: 600px) {
   .home-section {
-    padding: 60px 16px;
+    padding: 88px 16px 56px;
+  }
+
+  .home-section__inner {
+    gap: 32px;
   }
 
   .home-section__title {
     font-size: 1.5rem;
   }
 
+  .home-section__subtitle {
+    margin-bottom: 20px;
+  }
+
   .news-preview-card__image-wrap {
-    height: 120px;
+    height: 160px;
+  }
+
+  .news-preview-card__body {
+    padding: 18px;
   }
 }
 
