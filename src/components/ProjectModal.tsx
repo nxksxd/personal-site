@@ -1,5 +1,5 @@
 import Modal from "./Modal";
-import { gradientFor } from "./ProjectMedia";
+import { gradientFor } from "../lib/gradient";
 import { ExternalLinkIcon, GitHubIcon } from "./Icons";
 import type { Project } from "../data/projects";
 
@@ -42,30 +42,28 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
           {project.title}
         </h2>
         <p className="modal-detail__text">{project.description}</p>
-        <div className="modal-detail__links">
-          {project.github && (
+        {(project.github || project.link !== "#") && (
+          <div className="modal-detail__links">
             <a
-              href={project.github}
+              href={project.github ?? project.link}
               target="_blank"
               rel="noopener noreferrer"
               className="modal-detail__link"
             >
-              <GitHubIcon size={18} />
-              GitHub
+              {project.github ? (
+                <>
+                  <GitHubIcon size={18} />
+                  GitHub
+                </>
+              ) : (
+                <>
+                  <ExternalLinkIcon size={16} />
+                  Открыть
+                </>
+              )}
             </a>
-          )}
-          {project.link !== "#" && (
-            <a
-              href={project.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="modal-detail__link"
-            >
-              <ExternalLinkIcon size={16} />
-              Открыть
-            </a>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </Modal>
   );
