@@ -171,3 +171,12 @@
     height: 140px;
   }
 }
+
+.all-news__card--clickable {
+  cursor: pointer;
+}
+
+.all-news__card--clickable:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}

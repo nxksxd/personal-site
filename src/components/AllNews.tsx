@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { useData } from "../context/data-context";
 import { CommentIcon } from "./Icons";
+import PostModal from "./PostModal";
+import type { Post } from "../data/posts";
 import "./AllNews.css";
 
 function formatDate(dateStr: string): string {
@@ -13,6 +16,7 @@ function formatDate(dateStr: string): string {
 
 export default function AllNews() {
   const { posts } = useData();
+  const [activePost, setActivePost] = useState<Post | null>(null);
 
   return (
     <section className="all-news">
@@ -25,7 +29,19 @@ export default function AllNews() {
 
         <div className="all-news__grid">
           {posts.map((post) => (
-            <article key={post.id} className="all-news__card">
+            <article
+              key={post.id}
+              className="all-news__card all-news__card--clickable"
+              role="button"
+              tabIndex={0}
+              onClick={() => setActivePost(post)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setActivePost(post);
+                }
+              }}
+            >
               {post.image && (
                 <div className="all-news__card-image-wrap">
                   <img
@@ -70,6 +86,10 @@ export default function AllNews() {
           <p className="all-news__empty">Нет новостей.</p>
         )}
       </div>
+
+      {activePost && (
+        <PostModal post={activePost} onClose={() => setActivePost(null)} />
+      )}
     </section>
   );
 }

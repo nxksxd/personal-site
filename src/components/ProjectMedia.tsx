@@ -5,7 +5,7 @@ interface ProjectMediaProps {
 
 // Deterministic gradient based on the title so each project keeps a stable
 // look even without an uploaded image.
-function gradientFor(title: string): string {
+export function gradientFor(title: string): string {
   let hash = 0;
   for (let i = 0; i < title.length; i++) {
     hash = (hash * 31 + title.charCodeAt(i)) % 360;

@@ -147,3 +147,12 @@
     grid-template-columns: 1fr;
   }
 }
+
+.project-card--clickable {
+  cursor: pointer;
+}
+
+.project-card--clickable:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}

@@ -175,3 +175,12 @@
   font-size: 0.95rem;
   margin: 8px 0 16px;
 }
+
+.news-preview-card--clickable {
+  cursor: pointer;
+}
+
+.news-preview-card--clickable:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}

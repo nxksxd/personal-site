@@ -1,6 +1,11 @@
+import { useState } from "react";
 import { useData } from "../context/data-context";
 import { ExternalLinkIcon, GitHubIcon, CommentIcon } from "./Icons";
 import ProjectMedia from "./ProjectMedia";
+import PostModal from "./PostModal";
+import ProjectModal from "./ProjectModal";
+import type { Post } from "../data/posts";
+import type { Project } from "../data/projects";
 import "./Projects.css";
 import "./HomeSection.css";
 
@@ -15,6 +20,8 @@ function formatDate(dateStr: string): string {
 
 export default function HomeSection() {
   const { projects, posts, loading, error } = useData();
+  const [activePost, setActivePost] = useState<Post | null>(null);
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
 
   const displayProjects = projects.slice(0, 3);
   const displayPosts = posts.slice(0, 2);
@@ -37,9 +44,18 @@ export default function HomeSection() {
             {displayProjects.map((p, i) => (
               <article
                 key={p.id}
-                className={`project-card${
+                className={`project-card project-card--clickable${
                   i === 0 ? " project-card--featured" : ""
                 }`}
+                role="button"
+                tabIndex={0}
+                onClick={() => setActiveProject(p)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setActiveProject(p);
+                  }
+                }}
               >
                 <ProjectMedia title={p.title} image={p.image} />
                 <div className="project-card__body">
@@ -53,6 +69,7 @@ export default function HomeSection() {
                           rel="noopener noreferrer"
                           className="project-card__icon-link"
                           title="GitHub"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           <GitHubIcon size={18} />
                         </a>
@@ -64,6 +81,7 @@ export default function HomeSection() {
                           rel="noopener noreferrer"
                           className="project-card__icon-link"
                           title="Открыть"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           <ExternalLinkIcon size={16} />
                         </a>
@@ -96,7 +114,19 @@ export default function HomeSection() {
 
           <div className="home-section__cards">
             {displayPosts.map((post) => (
-              <article key={post.id} className="news-preview-card">
+              <article
+                key={post.id}
+                className="news-preview-card news-preview-card--clickable"
+                role="button"
+                tabIndex={0}
+                onClick={() => setActivePost(post)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setActivePost(post);
+                  }
+                }}
+              >
                 {post.image && (
                   <div className="news-preview-card__image-wrap">
                     <img
@@ -147,6 +177,16 @@ export default function HomeSection() {
           </a>
         </div>
       </div>
+
+      {activePost && (
+        <PostModal post={activePost} onClose={() => setActivePost(null)} />
+      )}
+      {activeProject && (
+        <ProjectModal
+          project={activeProject}
+          onClose={() => setActiveProject(null)}
+        />
+      )}
     </section>
   );
 }
