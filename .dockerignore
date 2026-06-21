@@ -1,0 +1,11 @@
+node_modules
+dist
+.git
+**/__pycache__
+backend/.venv
+backend/data
+backend/.jwt_secret
+backend/*.egg-info
+*.md
+.env
+.env.*

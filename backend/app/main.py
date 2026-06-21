@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import APIRouter, Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
 from .auth import get_current_user
@@ -60,3 +62,25 @@ app.include_router(auth.router)
 app.include_router(posts.router)
 app.include_router(projects.router)
 app.include_router(socials.router)
+
+
+# Optionally serve the built frontend (single-origin deployment). Activated only
+# when FRONTEND_DIST points to an existing build, so local dev is unaffected.
+_frontend_dist = os.getenv(
+    "FRONTEND_DIST",
+    os.path.join(os.path.dirname(__file__), "..", "..", "dist"),
+)
+if os.path.isdir(_frontend_dist):
+    _index = os.path.join(_frontend_dist, "index.html")
+    app.mount(
+        "/assets",
+        StaticFiles(directory=os.path.join(_frontend_dist, "assets")),
+        name="assets",
+    )
+
+    @app.get("/{full_path:path}")
+    def spa(full_path: str):
+        candidate = os.path.join(_frontend_dist, full_path)
+        if full_path and os.path.isfile(candidate):
+            return FileResponse(candidate)
+        return FileResponse(_index)

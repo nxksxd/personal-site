@@ -9,3 +9,6 @@ venv/
 data/
 *.db
 *.sqlite3
+
+# Local dev JWT secret
+.jwt_secret
