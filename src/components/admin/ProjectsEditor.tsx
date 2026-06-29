@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useData } from "../../context/DataContext";
+import { useRef, useState } from "react";
+import { useData } from "../../context/data-context";
 import type { Project } from "../../data/projects";
 
 interface ProjectForm {
@@ -8,6 +8,7 @@ interface ProjectForm {
   tags: string;
   link: string;
   github: string;
+  image: string;
 }
 
 const emptyForm: ProjectForm = {
@@ -16,6 +17,7 @@ const emptyForm: ProjectForm = {
   tags: "",
   link: "",
   github: "",
+  image: "",
 };
 
 function projectToForm(p: Project): ProjectForm {
@@ -25,6 +27,7 @@ function projectToForm(p: Project): ProjectForm {
     tags: p.tags.join(", "),
     link: p.link,
     github: p.github ?? "",
+    image: p.image ?? "",
   };
 }
 
@@ -43,6 +46,7 @@ function formToProject(
     tags,
     link: form.link || "#",
     github: form.github || undefined,
+    image: form.image || undefined,
   };
 }
 
@@ -51,6 +55,8 @@ export default function ProjectsEditor() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState<ProjectForm>(emptyForm);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleEdit = (project: Project) => {
     setEditingId(project.id);
@@ -58,31 +64,57 @@ export default function ProjectsEditor() {
     setShowNew(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.title || !form.description) return;
-    if (editingId !== null) {
-      updateProject(formToProject(form, editingId) as Project);
-      setEditingId(null);
-    } else {
-      addProject(formToProject(form));
-      setShowNew(false);
+    try {
+      if (editingId !== null) {
+        await updateProject(formToProject(form, editingId) as Project);
+        setEditingId(null);
+      } else {
+        await addProject(formToProject(form));
+        setShowNew(false);
+      }
+      setForm(emptyForm);
+      setSaveError(null);
+    } catch {
+      setSaveError(
+        "Не удалось сохранить. Проверьте подключение и войдите заново."
+      );
     }
-    setForm(emptyForm);
   };
 
   const handleCancel = () => {
     setEditingId(null);
     setShowNew(false);
     setForm(emptyForm);
+    setSaveError(null);
   };
 
-  const handleDelete = (id: number) => {
-    deleteProject(id);
-    if (editingId === id) handleCancel();
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteProject(id);
+      if (editingId === id) handleCancel();
+    } catch {
+      setSaveError("Не удалось удалить проект.");
+    }
   };
 
   const updateField = (field: keyof ProjectForm, value: string) => {
     setForm((f) => ({ ...f, [field]: value }));
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        updateField("image", reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   const renderForm = () => (
@@ -90,6 +122,7 @@ export default function ProjectsEditor() {
       <h3 className="admin__card-title">
         {editingId !== null ? "Редактирование проекта" : "Новый проект"}
       </h3>
+      {saveError && <p className="admin__error">{saveError}</p>}
       <div className="admin__field">
         <label className="admin__label">Название *</label>
         <input
@@ -135,6 +168,54 @@ export default function ProjectsEditor() {
           onChange={(e) => updateField("github", e.target.value)}
           placeholder="https://github.com/..."
         />
+      </div>
+      <div className="admin__field">
+        <label className="admin__label">Изображение</label>
+        <div className="admin__image-field">
+          <input
+            className="admin__input"
+            value={form.image}
+            onChange={(e) => updateField("image", e.target.value)}
+            placeholder="URL картинки или загрузите файл"
+          />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={handleFileUpload}
+          />
+          <button
+            className="admin__btn admin__btn--secondary"
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            style={{ whiteSpace: "nowrap" }}
+          >
+            Загрузить
+          </button>
+        </div>
+        {form.image && (
+          <div className="admin__image-preview">
+            <img
+              src={form.image}
+              alt="Превью"
+              style={{
+                maxWidth: "100%",
+                maxHeight: 160,
+                borderRadius: 8,
+                marginTop: 8,
+                objectFit: "cover",
+              }}
+            />
+            <button
+              className="admin__btn admin__btn--danger admin__btn--small"
+              style={{ marginTop: 4 }}
+              onClick={() => updateField("image", "")}
+            >
+              Убрать
+            </button>
+          </div>
+        )}
       </div>
       <div className="admin__actions">
         <button className="admin__btn admin__btn--secondary" onClick={handleCancel}>

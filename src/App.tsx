@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { ThemeProvider } from "./context/ThemeContext";
 import { DataProvider } from "./context/DataContext";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthContext";
+import { useAuth } from "./context/auth-context";
 import Header from "./components/Header";
 import Hero from "./components/Hero";
 import HomeSection from "./components/HomeSection";
@@ -30,7 +31,7 @@ function Home() {
   return (
     <>
       <Header />
-      <main>
+      <main id="main">
         <HomeSection />
         <Hero />
       </main>
@@ -43,7 +44,7 @@ function ProjectsPage() {
   return (
     <>
       <Header />
-      <main>
+      <main id="main">
         <AllProjects />
       </main>
       <Footer />
@@ -55,7 +56,7 @@ function NewsPage() {
   return (
     <>
       <Header />
-      <main>
+      <main id="main">
         <AllNews />
       </main>
       <Footer />

@@ -1,0 +1,70 @@
+import Modal from "./Modal";
+import { gradientFor } from "../lib/gradient";
+import { ExternalLinkIcon, GitHubIcon } from "./Icons";
+import type { Project } from "../data/projects";
+
+interface ProjectModalProps {
+  project: Project;
+  onClose: () => void;
+}
+
+export default function ProjectModal({ project, onClose }: ProjectModalProps) {
+  return (
+    <Modal onClose={onClose} labelledBy="project-modal-title">
+      {project.image ? (
+        <div className="modal-detail__media">
+          <img src={project.image} alt={project.title} />
+        </div>
+      ) : (
+        <div
+          className="modal-detail__media modal-detail__media--fallback"
+          style={{ background: gradientFor(project.title) }}
+          aria-hidden="true"
+        >
+          <span className="modal-detail__monogram">
+            {project.title.charAt(0)}
+          </span>
+        </div>
+      )}
+      <div className="modal-detail__body">
+        {project.tags.length > 0 && (
+          <div className="modal-detail__meta">
+            <div className="modal-detail__tags">
+              {project.tags.map((tag) => (
+                <span key={tag} className="modal-detail__tag">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        <h2 id="project-modal-title" className="modal-detail__title">
+          {project.title}
+        </h2>
+        <p className="modal-detail__text">{project.description}</p>
+        {(project.github || project.link !== "#") && (
+          <div className="modal-detail__links">
+            <a
+              href={project.github ?? project.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="modal-detail__link"
+            >
+              {project.github ? (
+                <>
+                  <GitHubIcon size={18} />
+                  GitHub
+                </>
+              ) : (
+                <>
+                  <ExternalLinkIcon size={16} />
+                  Открыть
+                </>
+              )}
+            </a>
+          </div>
+        )}
+      </div>
+    </Modal>
+  );
+}

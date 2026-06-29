@@ -1,4 +1,4 @@
-import { useData } from "../context/DataContext";
+import { useData } from "../context/data-context";
 import { GitHubIcon, TelegramIcon, EmailIcon } from "./Icons";
 import "./Footer.css";
 

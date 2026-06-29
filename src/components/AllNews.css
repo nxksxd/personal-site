@@ -156,18 +156,36 @@
 
 @media (max-width: 600px) {
   .all-news {
-    padding: 80px 16px 40px;
+    padding: 88px 16px 48px;
   }
 
   .all-news__title {
     font-size: 1.7rem;
   }
 
+  .all-news__subtitle {
+    margin-bottom: 28px;
+  }
+
   .all-news__grid {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .all-news__card-image-wrap {
-    height: 140px;
+    height: 170px;
   }
+
+  .all-news__card-body {
+    padding: 20px;
+  }
+}
+
+.all-news__card--clickable {
+  cursor: pointer;
+}
+
+.all-news__card--clickable:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }

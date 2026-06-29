@@ -1,9 +1,14 @@
-import { useData } from "../context/DataContext";
+import { useState } from "react";
+import { useData } from "../context/data-context";
 import { ExternalLinkIcon, GitHubIcon } from "./Icons";
+import ProjectMedia from "./ProjectMedia";
+import ProjectModal from "./ProjectModal";
+import type { Project } from "../data/projects";
 import "./AllProjects.css";
 
 export default function AllProjects() {
   const { projects } = useData();
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
 
   return (
     <section className="all-projects">
@@ -16,41 +21,58 @@ export default function AllProjects() {
 
         <div className="all-projects__grid">
           {projects.map((p) => (
-            <article key={p.id} className="project-card">
-              <div className="project-card__header">
-                <h3 className="project-card__title">{p.title}</h3>
-                <div className="project-card__links">
-                  {p.github && (
-                    <a
-                      href={p.github}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="project-card__icon-link"
-                      title="GitHub"
-                    >
-                      <GitHubIcon size={18} />
-                    </a>
-                  )}
-                  {p.link !== "#" && (
-                    <a
-                      href={p.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="project-card__icon-link"
-                      title="Открыть"
-                    >
-                      <ExternalLinkIcon size={16} />
-                    </a>
-                  )}
+            <article
+              key={p.id}
+              className="project-card project-card--clickable"
+              role="button"
+              tabIndex={0}
+              onClick={() => setActiveProject(p)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setActiveProject(p);
+                }
+              }}
+            >
+              <ProjectMedia title={p.title} image={p.image} />
+              <div className="project-card__body">
+                <div className="project-card__header">
+                  <h3 className="project-card__title">{p.title}</h3>
+                  <div className="project-card__links">
+                    {p.github && (
+                      <a
+                        href={p.github}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="project-card__icon-link"
+                        title="GitHub"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <GitHubIcon size={18} />
+                      </a>
+                    )}
+                    {p.link !== "#" && (
+                      <a
+                        href={p.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="project-card__icon-link"
+                        title="Открыть"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ExternalLinkIcon size={16} />
+                      </a>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <p className="project-card__desc">{p.description}</p>
-              <div className="project-card__tags">
-                {p.tags.map((tag) => (
-                  <span key={tag} className="project-card__tag">
-                    {tag}
-                  </span>
-                ))}
+                <p className="project-card__desc">{p.description}</p>
+                <div className="project-card__tags">
+                  {p.tags.map((tag) => (
+                    <span key={tag} className="project-card__tag">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
             </article>
           ))}
@@ -60,6 +82,13 @@ export default function AllProjects() {
           <p className="all-projects__empty">Нет проектов.</p>
         )}
       </div>
+
+      {activeProject && (
+        <ProjectModal
+          project={activeProject}
+          onClose={() => setActiveProject(null)}
+        />
+      )}
     </section>
   );
 }
