@@ -56,25 +56,20 @@ export default function AllNews() {
           filtered.map((post) => (
             <article
               key={post.id}
-              className="all-news__card"
+              className="all-news__card all-news__card--clickable"
               onClick={() => setSelectedPost(post)}
             >
               {post.image && (
-                <img
-                  src={post.image}
-                  alt={post.title}
-                  className="all-news__card-image"
-                />
-              )}
-              <div className="all-news__card-content">
-                <h3 className="all-news__card-title">{post.title}</h3>
-                <div className="all-news__card-excerpt">
-                  <MarkdownContent
-                    content={post.content.slice(0, 200)}
-                    preview={true}
+                <div className="all-news__card-image-wrap">
+                  <img
+                    src={post.image}
+                    alt={post.title}
+                    className="all-news__card-image"
                   />
                 </div>
-                <div className="all-news__card-footer">
+              )}
+              <div className="all-news__card-body">
+                <div className="all-news__card-meta">
                   <time className="all-news__card-date">{post.date}</time>
                   {post.category && (
                     <span
@@ -88,6 +83,21 @@ export default function AllNews() {
                     </span>
                   )}
                 </div>
+                <h3 className="all-news__card-title">{post.title}</h3>
+                <div className="all-news__card-content">
+                  <MarkdownContent
+                    content={post.content.slice(0, 200)}
+                    preview={true}
+                  />
+                </div>
+                {post.comment && (
+                  <div className="all-news__card-comment">
+                    <div className="all-news__card-comment-header">
+                      💬 Комментарий автора
+                    </div>
+                    <p className="all-news__card-comment-text">{post.comment}</p>
+                  </div>
+                )}
               </div>
             </article>
           ))
