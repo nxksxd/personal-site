@@ -1,6 +1,8 @@
+from datetime import datetime, timezone
+
 from sqlalchemy.orm import Session
 
-from .models import Post, Project, Social
+from .models import Category, Post, Project, Social
 
 DEFAULT_PROJECTS = [
     {
@@ -38,6 +40,8 @@ DEFAULT_PROJECTS = [
     },
 ]
 
+_now = datetime.now(timezone.utc).isoformat()
+
 DEFAULT_POSTS = [
     {
         "date": "2026-06-07",
@@ -53,6 +57,9 @@ DEFAULT_POSTS = [
             "всех обновлений."
         ),
         "tags": ["анонс", "сайт"],
+        "status": "published",
+        "slug": "zapusk-lichnogo-sajta",
+        "created_at": _now,
     },
     {
         "date": "2026-06-05",
@@ -68,6 +75,9 @@ DEFAULT_POSTS = [
             "реализовать красиво."
         ),
         "tags": ["FinAI", "релиз"],
+        "status": "published",
+        "slug": "finai-v18-novyj-import-s-deduplikaciej",
+        "created_at": _now,
     },
     {
         "date": "2026-06-01",
@@ -79,6 +89,9 @@ DEFAULT_POSTS = [
         "image": "/images/placeholder-proxy.svg",
         "comment": None,
         "tags": ["MTProxyMax", "i18n"],
+        "status": "published",
+        "slug": "mtproxymax-polnaya-internacionalizaciya",
+        "created_at": _now,
     },
 ]
 
@@ -86,6 +99,12 @@ DEFAULT_SOCIALS = [
     {"name": "GitHub", "url": "https://github.com/nxksxd", "icon": "github"},
     {"name": "Telegram", "url": "https://t.me/nxksxd", "icon": "telegram"},
     {"name": "Email", "url": "mailto:12455nikita.nd@gmail.com", "icon": "email"},
+]
+
+DEFAULT_CATEGORIES = [
+    {"name": "Разработка", "slug": "dev", "color": "#6366f1"},
+    {"name": "Новости", "slug": "news", "color": "#10b981"},
+    {"name": "Личное", "slug": "personal", "color": "#f59e0b"},
 ]
 
 
@@ -99,6 +118,11 @@ def seed_content(db: Session, *, force: bool = False) -> None:
         db.query(Post).delete()
         db.query(Project).delete()
         db.query(Social).delete()
+        db.query(Category).delete()
+        db.commit()
+
+    if db.query(Category).count() == 0:
+        db.add_all(Category(**c) for c in DEFAULT_CATEGORIES)
         db.commit()
 
     if db.query(Project).count() == 0:

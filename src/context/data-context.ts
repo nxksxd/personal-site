@@ -1,12 +1,14 @@
 import { createContext, useContext } from "react";
 import type { Project } from "../data/projects";
-import type { Post } from "../data/posts";
+import type { Post, Category, Upload, DashboardStats } from "../data/posts";
 import type { Social } from "../data/socials";
 
 export interface DataContextType {
   projects: Project[];
   posts: Post[];
+  allPosts: Post[];
   socials: Social[];
+  categories: Category[];
   loading: boolean;
   error: string | null;
   reload: () => Promise<void>;
@@ -19,6 +21,14 @@ export interface DataContextType {
   addSocial: (social: Omit<Social, "id">) => Promise<void>;
   updateSocial: (social: Social) => Promise<void>;
   deleteSocial: (id: number) => Promise<void>;
+  addCategory: (category: Omit<Category, "id">) => Promise<void>;
+  updateCategory: (category: Category) => Promise<void>;
+  deleteCategory: (id: number) => Promise<void>;
+  uploadFile: (file: File) => Promise<Upload>;
+  uploads: Upload[];
+  loadUploads: () => Promise<void>;
+  deleteUpload: (id: number) => Promise<void>;
+  loadDashboard: () => Promise<DashboardStats>;
   resetAll: () => Promise<void>;
 }
 

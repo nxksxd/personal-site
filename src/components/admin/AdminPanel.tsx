@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { useAuth } from "../../context/auth-context";
 import { useData } from "../../context/data-context";
+import DashboardView from "./DashboardView";
 import PostsEditor from "./PostsEditor";
 import ProjectsEditor from "./ProjectsEditor";
+import CategoriesEditor from "./CategoriesEditor";
 import SocialsEditor from "./SocialsEditor";
 import UsersEditor from "./UsersEditor";
 import "./AdminPanel.css";
 
-type Tab = "posts" | "projects" | "socials" | "users";
+type Tab = "dashboard" | "posts" | "projects" | "categories" | "socials" | "users";
 
 export default function AdminPanel({ onBack }: { onBack: () => void }) {
-  const [tab, setTab] = useState<Tab>("posts");
+  const [tab, setTab] = useState<Tab>("dashboard");
   const { resetAll } = useData();
   const { logout, currentUser } = useAuth();
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -72,6 +74,12 @@ export default function AdminPanel({ onBack }: { onBack: () => void }) {
 
         <div className="admin__tabs">
           <button
+            className={`admin__tab ${tab === "dashboard" ? "admin__tab--active" : ""}`}
+            onClick={() => setTab("dashboard")}
+          >
+            📊 Дашборд
+          </button>
+          <button
             className={`admin__tab ${tab === "posts" ? "admin__tab--active" : ""}`}
             onClick={() => setTab("posts")}
           >
@@ -82,6 +90,12 @@ export default function AdminPanel({ onBack }: { onBack: () => void }) {
             onClick={() => setTab("projects")}
           >
             Проекты
+          </button>
+          <button
+            className={`admin__tab ${tab === "categories" ? "admin__tab--active" : ""}`}
+            onClick={() => setTab("categories")}
+          >
+            Категории
           </button>
           <button
             className={`admin__tab ${tab === "socials" ? "admin__tab--active" : ""}`}
@@ -98,8 +112,10 @@ export default function AdminPanel({ onBack }: { onBack: () => void }) {
         </div>
 
         <div className="admin__content">
+          {tab === "dashboard" && <DashboardView />}
           {tab === "posts" && <PostsEditor />}
           {tab === "projects" && <ProjectsEditor />}
+          {tab === "categories" && <CategoriesEditor />}
           {tab === "socials" && <SocialsEditor />}
           {tab === "users" && <UsersEditor />}
         </div>

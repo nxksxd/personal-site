@@ -1,54 +1,30 @@
-import { useEffect, useRef } from "react";
-import { CloseIcon } from "./Icons";
+import { useEffect } from "react";
 import "./Modal.css";
 
-interface ModalProps {
+export interface ModalProps {
   onClose: () => void;
-  labelledBy?: string;
   children: React.ReactNode;
+  className?: string;
 }
 
-export default function Modal({ onClose, labelledBy, children }: ModalProps) {
-  const closeRef = useRef<HTMLButtonElement>(null);
-
+export default function Modal({ onClose, children, className }: ModalProps) {
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
+    const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
-    document.addEventListener("keydown", onKeyDown);
-
-    // Lock background scroll while the modal is open.
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    closeRef.current?.focus();
-
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = prevOverflow;
-    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
   }, [onClose]);
 
   return (
-    <div
-      className="modal__overlay"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={labelledBy}
-    >
-      <div className="modal__window" onClick={(e) => e.stopPropagation()}>
-        <button
-          ref={closeRef}
-          type="button"
-          className="modal__close"
-          aria-label="Закрыть"
-          onClick={onClose}
-        >
-          <CloseIcon size={22} />
+    <>
+      <div className="modal-overlay" onClick={onClose} />
+      <dialog className={`modal ${className || ""}`} open>
+        <button className="modal-close" onClick={onClose}>
+          ✕
         </button>
-        <div className="modal__scroll">{children}</div>
-      </div>
-    </div>
+        {children}
+      </dialog>
+    </>
   );
 }

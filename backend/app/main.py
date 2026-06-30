@@ -10,8 +10,25 @@ from sqlalchemy.orm import Session
 from .auth import get_current_user
 from .database import Base, engine, get_db
 from .models import User
-from .routers import auth, posts, projects, socials
+from .routers import auth, categories, dashboard, posts, projects, socials, uploads
 from .seed import seed_content
+
+
+def _resolve_data_dir() -> str:
+    """Resolve writable data directory (same logic as database.py)."""
+    preferred = os.getenv("DATA_DIR", "/data")
+    for directory in (preferred, os.path.join(os.getcwd(), "data")):
+        try:
+            os.makedirs(directory, exist_ok=True)
+            return directory
+        except OSError:
+            continue
+    return os.path.join(os.getcwd(), "data")
+
+
+DATA_DIR = _resolve_data_dir()
+UPLOADS_DIR = os.path.join(DATA_DIR, "uploads")
+os.makedirs(UPLOADS_DIR, exist_ok=True)
 
 Base.metadata.create_all(bind=engine)
 
@@ -62,6 +79,13 @@ app.include_router(auth.router)
 app.include_router(posts.router)
 app.include_router(projects.router)
 app.include_router(socials.router)
+app.include_router(categories.router)
+app.include_router(uploads.router)
+app.include_router(dashboard.router)
+
+# Serve uploaded files as static
+if os.path.isdir(UPLOADS_DIR):
+    app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 
 # Optionally serve the built frontend (single-origin deployment). Activated only

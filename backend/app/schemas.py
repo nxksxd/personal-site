@@ -26,6 +26,20 @@ class AuthStatus(BaseModel):
     has_users: bool
 
 
+# ---------- Categories ----------
+
+class CategoryBase(BaseModel):
+    name: str = Field(min_length=1)
+    slug: Optional[str] = None
+    color: Optional[str] = "#6366f1"
+
+
+class CategoryOut(CategoryBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+
+
 # ---------- Posts ----------
 
 class PostBase(BaseModel):
@@ -35,12 +49,20 @@ class PostBase(BaseModel):
     image: Optional[str] = None
     comment: Optional[str] = None
     tags: list[str] = Field(default_factory=list)
+    status: str = "published"
+    slug: Optional[str] = None
+    meta_description: Optional[str] = None
+    og_image: Optional[str] = None
+    category_id: Optional[int] = None
 
 
 class PostOut(PostBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    category: Optional[CategoryOut] = None
 
 
 # ---------- Projects ----------
@@ -72,3 +94,30 @@ class SocialOut(SocialBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+
+
+# ---------- Uploads ----------
+
+class UploadOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    filename: str
+    original_name: str
+    mime_type: str
+    size: int
+    uploaded_at: str
+    url: str
+
+
+# ---------- Dashboard ----------
+
+class DashboardStats(BaseModel):
+    total_posts: int
+    total_projects: int
+    total_socials: int
+    published_posts: int
+    draft_posts: int
+    total_categories: int
+    total_uploads: int
+    recent_posts: list[PostOut] = Field(default_factory=list)

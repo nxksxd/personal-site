@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Text, JSON
+from sqlalchemy import Column, ForeignKey, Integer, String, Text, JSON
+from sqlalchemy.orm import relationship
 
 from .database import Base
 
@@ -11,6 +12,17 @@ class User(Base):
     password_hash = Column(String, nullable=False)
 
 
+class Category(Base):
+    __tablename__ = "categories"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False)
+    slug = Column(String, unique=True, nullable=False)
+    color = Column(String, nullable=False, default="#6366f1")
+
+    posts = relationship("Post", back_populates="category")
+
+
 class Post(Base):
     __tablename__ = "posts"
 
@@ -21,6 +33,17 @@ class Post(Base):
     image = Column(Text, nullable=True)
     comment = Column(Text, nullable=True)
     tags = Column(JSON, nullable=False, default=list)
+
+    # CMS fields
+    status = Column(String, nullable=False, default="published")
+    slug = Column(String, unique=True, nullable=True)
+    meta_description = Column(Text, nullable=True)
+    og_image = Column(Text, nullable=True)
+    category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
+    created_at = Column(String, nullable=True)
+    updated_at = Column(String, nullable=True)
+
+    category = relationship("Category", back_populates="posts")
 
 
 class Project(Base):
@@ -42,3 +65,15 @@ class Social(Base):
     name = Column(String, nullable=False)
     url = Column(String, nullable=False)
     icon = Column(String, nullable=False, default="github")
+
+
+class Upload(Base):
+    __tablename__ = "uploads"
+
+    id = Column(Integer, primary_key=True, index=True)
+    filename = Column(String, nullable=False)
+    original_name = Column(String, nullable=False)
+    mime_type = Column(String, nullable=False)
+    size = Column(Integer, nullable=False)
+    uploaded_at = Column(String, nullable=False)
+    url = Column(String, nullable=False)

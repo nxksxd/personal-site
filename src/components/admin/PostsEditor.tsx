@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { useData } from "../../context/data-context";
+import MarkdownEditor from "./MarkdownEditor";
 import type { Post } from "../../data/posts";
 
 interface PostForm {
@@ -9,6 +10,11 @@ interface PostForm {
   image: string;
   comment: string;
   tags: string;
+  status: "published" | "draft";
+  slug: string;
+  meta_description: string;
+  og_image: string;
+  category_id: string;
 }
 
 const emptyForm: PostForm = {
@@ -18,6 +24,11 @@ const emptyForm: PostForm = {
   image: "",
   comment: "",
   tags: "",
+  status: "published",
+  slug: "",
+  meta_description: "",
+  og_image: "",
+  category_id: "",
 };
 
 function postToForm(post: Post): PostForm {
@@ -28,6 +39,11 @@ function postToForm(post: Post): PostForm {
     image: post.image ?? "",
     comment: post.comment ?? "",
     tags: post.tags?.join(", ") ?? "",
+    status: post.status ?? "published",
+    slug: post.slug ?? "",
+    meta_description: post.meta_description ?? "",
+    og_image: post.og_image ?? "",
+    category_id: post.category_id?.toString() ?? "",
   };
 }
 
@@ -44,15 +60,22 @@ function formToPost(form: PostForm, id?: number): Omit<Post, "id"> & { id?: numb
     image: form.image || undefined,
     comment: form.comment || undefined,
     tags: tags.length > 0 ? tags : undefined,
+    status: form.status,
+    slug: form.slug || undefined,
+    meta_description: form.meta_description || undefined,
+    og_image: form.og_image || undefined,
+    category_id: form.category_id ? parseInt(form.category_id) : undefined,
   };
 }
 
 export default function PostsEditor() {
-  const { posts, addPost, updatePost, deletePost } = useData();
+  const { allPosts, categories, addPost, updatePost, deletePost, uploadFile } = useData();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState<PostForm>(emptyForm);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [showSeo, setShowSeo] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleEdit = (post: Post) => {
@@ -73,6 +96,7 @@ export default function PostsEditor() {
       }
       setForm(emptyForm);
       setSaveError(null);
+      setShowSeo(false);
     } catch {
       setSaveError(
         "Не удалось сохранить. Проверьте подключение и войдите заново."
@@ -85,6 +109,7 @@ export default function PostsEditor() {
     setShowNew(false);
     setForm(emptyForm);
     setSaveError(null);
+    setShowSeo(false);
   };
 
   const handleDelete = async (id: number) => {
@@ -100,19 +125,32 @@ export default function PostsEditor() {
     setForm((f) => ({ ...f, [field]: value }));
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        updateField("image", reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
-    e.target.value = "";
+
+    setUploading(true);
+    try {
+      const upload = await uploadFile(file);
+      updateField("image", upload.url);
+    } catch {
+      // Fallback to base64
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          updateField("image", reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
   };
+
+  const statusLabel = (s: string | undefined) => (s === "draft" ? "Черновик" : "Опубликован");
+  const statusColor = (s: string | undefined) => (s === "draft" ? "#f59e0b" : "#10b981");
 
   const renderForm = () => (
     <div className="admin__card" style={{ borderColor: "var(--accent)" }}>
@@ -120,6 +158,37 @@ export default function PostsEditor() {
         {editingId !== null ? "Редактирование поста" : "Новый пост"}
       </h3>
       {saveError && <p className="admin__error">{saveError}</p>}
+
+      {/* Status & Category row */}
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+        <div className="admin__field" style={{ flex: 1, minWidth: 140 }}>
+          <label className="admin__label">Статус</label>
+          <select
+            className="admin__input"
+            value={form.status}
+            onChange={(e) => updateField("status", e.target.value)}
+          >
+            <option value="published">Опубликован</option>
+            <option value="draft">Черновик</option>
+          </select>
+        </div>
+        <div className="admin__field" style={{ flex: 1, minWidth: 140 }}>
+          <label className="admin__label">Категория</label>
+          <select
+            className="admin__input"
+            value={form.category_id}
+            onChange={(e) => updateField("category_id", e.target.value)}
+          >
+            <option value="">Без категории</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <div className="admin__field">
         <label className="admin__label">Заголовок *</label>
         <input
@@ -159,8 +228,9 @@ export default function PostsEditor() {
             type="button"
             onClick={() => fileInputRef.current?.click()}
             style={{ whiteSpace: "nowrap" }}
+            disabled={uploading}
           >
-            Загрузить
+            {uploading ? "Загрузка..." : "Загрузить"}
           </button>
         </div>
         {form.image && (
@@ -187,13 +257,11 @@ export default function PostsEditor() {
         )}
       </div>
       <div className="admin__field">
-        <label className="admin__label">Содержание *</label>
-        <textarea
-          className="admin__textarea"
+        <label className="admin__label">Содержание * (Markdown)</label>
+        <MarkdownEditor
           value={form.content}
-          onChange={(e) => updateField("content", e.target.value)}
-          placeholder="Текст поста..."
-          rows={4}
+          onChange={(v) => updateField("content", v)}
+          placeholder="Текст поста в формате Markdown..."
         />
       </div>
       <div className="admin__field">
@@ -215,6 +283,49 @@ export default function PostsEditor() {
           placeholder="релиз, FinAI"
         />
       </div>
+
+      {/* SEO fields toggle */}
+      <button
+        type="button"
+        className="admin__btn admin__btn--secondary"
+        style={{ marginBottom: 12, fontSize: "0.85rem" }}
+        onClick={() => setShowSeo(!showSeo)}
+      >
+        {showSeo ? "▼ Скрыть SEO" : "▶ SEO-настройки"}
+      </button>
+      {showSeo && (
+        <div style={{ padding: "12px 0", borderTop: "1px solid var(--border)" }}>
+          <div className="admin__field">
+            <label className="admin__label">Slug (URL)</label>
+            <input
+              className="admin__input"
+              value={form.slug}
+              onChange={(e) => updateField("slug", e.target.value)}
+              placeholder="auto-generated-from-title"
+            />
+          </div>
+          <div className="admin__field">
+            <label className="admin__label">Meta Description</label>
+            <textarea
+              className="admin__textarea"
+              value={form.meta_description}
+              onChange={(e) => updateField("meta_description", e.target.value)}
+              placeholder="Описание для поисковых систем (до 160 символов)"
+              rows={2}
+            />
+          </div>
+          <div className="admin__field">
+            <label className="admin__label">OG Image URL</label>
+            <input
+              className="admin__input"
+              value={form.og_image}
+              onChange={(e) => updateField("og_image", e.target.value)}
+              placeholder="URL картинки для соцсетей"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="admin__actions">
         <button className="admin__btn admin__btn--secondary" onClick={handleCancel}>
           Отмена
@@ -237,10 +348,10 @@ export default function PostsEditor() {
       )}
 
       <div style={{ marginTop: 16 }}>
-        {posts.length === 0 && (
+        {allPosts.length === 0 && (
           <p className="admin__empty">Нет постов. Добавьте первый!</p>
         )}
-        {posts.map((post) =>
+        {allPosts.map((post) =>
           editingId === post.id ? null : (
             <div key={post.id} className="admin__card">
               <div className="admin__card-header">
@@ -257,7 +368,39 @@ export default function PostsEditor() {
                       }}
                     />
                   )}
-                  <h3 className="admin__card-title">{post.title}</h3>
+                  <div>
+                    <h3 className="admin__card-title" style={{ margin: 0 }}>
+                      {post.title}
+                    </h3>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                      <span
+                        style={{
+                          fontSize: "0.75rem",
+                          fontWeight: 600,
+                          padding: "2px 8px",
+                          borderRadius: 6,
+                          background: statusColor(post.status || "published") + "22",
+                          color: statusColor(post.status || "published"),
+                        }}
+                      >
+                        {statusLabel(post.status || "published")}
+                      </span>
+                      {post.category && (
+                        <span
+                          style={{
+                            fontSize: "0.75rem",
+                            fontWeight: 600,
+                            padding: "2px 8px",
+                            borderRadius: 6,
+                            background: post.category.color + "22",
+                            color: post.category.color,
+                          }}
+                        >
+                          {post.category.name}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button
@@ -277,6 +420,7 @@ export default function PostsEditor() {
               <p style={{ color: "var(--text-tertiary)", fontSize: "0.85rem" }}>
                 {post.date}
                 {post.tags && ` · ${post.tags.join(", ")}`}
+                {post.slug && ` · /${post.slug}`}
               </p>
               <p
                 style={{
