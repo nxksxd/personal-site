@@ -1,28 +1,36 @@
 import { useState } from "react";
 import { useData } from "../context/data-context";
+import { CommentIcon } from "./Icons";
 import MarkdownContent from "./MarkdownContent";
 import PostModal from "./PostModal";
 import type { Post } from "../data/posts";
 import "./AllNews.css";
 
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
 export default function AllNews() {
   const { allPosts, categories } = useData();
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [activePost, setActivePost] = useState<Post | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
-  const publishedPosts = allPosts.filter((p) => p.status === "published");
-  const filtered = selectedCategory
+  const publishedPosts = allPosts.filter((p) => p.status !== "draft");
+  const posts = selectedCategory
     ? publishedPosts.filter((p) => p.category_id === selectedCategory)
     : publishedPosts;
 
   return (
-    <div className="all-news">
+    <section className="all-news">
       <div className="all-news__inner">
-        <a href="/#" className="all-news__back">
-          ← На главную
-        </a>
-        <h1 className="all-news__title">Все новости</h1>
-        <p className="all-news__subtitle">Блог разработчика</p>
+        <a href="#" className="all-news__back">&larr; На главную</a>
+        <h1 className="all-news__title">Новости</h1>
+        <p className="all-news__subtitle">Все обновления и заметки</p>
 
         {categories.length > 0 && (
           <div className="all-news__filters">
@@ -59,64 +67,81 @@ export default function AllNews() {
         )}
 
         <div className="all-news__grid">
-          {filtered.length === 0 ? (
-            <p className="all-news__empty">Нет постов в этой категории</p>
-          ) : (
-            filtered.map((post) => (
-              <article
-                key={post.id}
-                className="news-card news-card--clickable"
-                onClick={() => setSelectedPost(post)}
-              >
-                {post.image && (
-                  <div className="news-card__image-wrap">
-                    <img
-                      src={post.image}
-                      alt={post.title}
-                      className="news-card__image"
-                    />
-                  </div>
-                )}
-                <div className="news-card__body">
-                  <div className="news-card__meta">
-                    <time className="news-card__date">{post.date}</time>
-                    {post.category && (
-                      <span
-                        className="news-card__category"
-                        style={{
-                          background: post.category.color + "22",
-                          color: post.category.color,
-                        }}
-                      >
-                        {post.category.name}
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="news-card__title">{post.title}</h3>
-                  <div className="news-card__content">
-                    <MarkdownContent
-                      content={post.content.slice(0, 200)}
-                      preview={true}
-                    />
-                  </div>
-                  {post.comment && (
-                    <div className="news-card__comment">
-                      <div className="news-card__comment-header">
-                        💬 Комментарий автора
-                      </div>
-                      <p className="news-card__comment-text">{post.comment}</p>
+          {posts.map((post) => (
+            <article
+              key={post.id}
+              className="all-news__card all-news__card--clickable"
+              role="button"
+              tabIndex={0}
+              onClick={() => setActivePost(post)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setActivePost(post);
+                }
+              }}
+            >
+              {post.image && (
+                <div className="all-news__card-image-wrap">
+                  <img
+                    className="all-news__card-image"
+                    src={post.image}
+                    alt={post.title}
+                  />
+                </div>
+              )}
+              <div className="all-news__card-body">
+                <div className="all-news__card-meta">
+                  <time className="all-news__card-date">
+                    {formatDate(post.date)}
+                  </time>
+                  {post.category && (
+                    <span
+                      className="all-news__card-category"
+                      style={{
+                        background: post.category.color + "22",
+                        color: post.category.color,
+                      }}
+                    >
+                      {post.category.name}
+                    </span>
+                  )}
+                  {post.tags && (
+                    <div className="all-news__card-tags">
+                      {post.tags.map((tag) => (
+                        <span key={tag} className="all-news__card-tag">
+                          #{tag}
+                        </span>
+                      ))}
                     </div>
                   )}
                 </div>
-              </article>
-            ))
-          )}
+                <h3 className="all-news__card-title">{post.title}</h3>
+                <div className="all-news__card-content">
+                  <MarkdownContent content={post.content} preview />
+                </div>
+                {post.comment && (
+                  <div className="all-news__card-comment">
+                    <div className="all-news__card-comment-header">
+                      <CommentIcon />
+                      <span>Комментарий автора</span>
+                    </div>
+                    <p className="all-news__card-comment-text">{post.comment}</p>
+                  </div>
+                )}
+              </div>
+            </article>
+          ))}
         </div>
 
-        {selectedPost && (
-          <PostModal post={selectedPost} onClose={() => setSelectedPost(null)} />
+        {posts.length === 0 && (
+          <p className="all-news__empty">Нет новостей.</p>
         )}
       </div>
-    </div>
+
+      {activePost && (
+        <PostModal post={activePost} onClose={() => setActivePost(null)} />
+      )}
+    </section>
   );
 }
