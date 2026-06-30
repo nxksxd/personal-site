@@ -134,6 +134,19 @@
   margin: 0;
 }
 
+/* When the text body wraps rendered markdown, let block elements flow normally */
+.modal-detail__text .markdown-content {
+  white-space: normal;
+}
+
+.modal-detail__text .markdown-content p {
+  margin: 0 0 1em;
+}
+
+.modal-detail__text .markdown-content p:last-child {
+  margin-bottom: 0;
+}
+
 .modal-detail__links {
   display: flex;
   gap: 12px;

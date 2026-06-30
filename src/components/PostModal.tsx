@@ -1,7 +1,16 @@
-import { useEffect, useState } from "react";
-import MarkdownContent from "./MarkdownContent";
 import Modal from "./Modal";
+import { CommentIcon } from "./Icons";
+import MarkdownContent from "./MarkdownContent";
 import type { Post } from "../data/posts";
+
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
 
 interface PostModalProps {
   post: Post;
@@ -9,60 +18,52 @@ interface PostModalProps {
 }
 
 export default function PostModal({ post, onClose }: PostModalProps) {
-  const [shareUrl, setShareUrl] = useState("");
-
-  useEffect(() => {
-    setShareUrl(window.location.href);
-  }, []);
-
   return (
-    <Modal onClose={onClose} className="post-modal">
-      <div className="post-modal__content">
-        {post.image && (
-          <img
-            src={post.image}
-            alt={post.title}
-            className="post-modal__image"
-          />
-        )}
-        <h2 className="post-modal__title">{post.title}</h2>
-        <div className="post-modal__meta">
-          <time>{post.date}</time>
-          {post.tags && post.tags.length > 0 && (
-            <span className="post-modal__tags">
-              {post.tags.map((tag, i) => (
-                <span key={i} className="post-modal__tag">
-                  #{tag}
-                </span>
-              ))}
-            </span>
-          )}
+    <Modal onClose={onClose} labelledBy="post-modal-title">
+      {post.image && (
+        <div className="modal-detail__media">
+          <img src={post.image} alt={post.title} />
+        </div>
+      )}
+      <div className="modal-detail__body">
+        <div className="modal-detail__meta">
+          <time className="modal-detail__date">{formatDate(post.date)}</time>
           {post.category && (
             <span
-              className="post-modal__category"
-              style={{ background: post.category.color + "22", color: post.category.color }}
+              className="modal-detail__tag"
+              style={{
+                background: post.category.color + "22",
+                color: post.category.color,
+              }}
             >
               {post.category.name}
             </span>
           )}
+          {post.tags && post.tags.length > 0 && (
+            <div className="modal-detail__tags">
+              {post.tags.map((tag) => (
+                <span key={tag} className="modal-detail__tag">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
-        <MarkdownContent content={post.content} />
+        <h2 id="post-modal-title" className="modal-detail__title">
+          {post.title}
+        </h2>
+        <div className="modal-detail__text">
+          <MarkdownContent content={post.content} className="modal-detail__markdown" />
+        </div>
         {post.comment && (
-          <div className="post-modal__comment">
-            <em className="post-modal__comment-label">Комментарий автора:</em>
-            <p>{post.comment}</p>
+          <div className="modal-detail__comment">
+            <div className="modal-detail__comment-header">
+              <CommentIcon />
+              <span>Комментарий автора</span>
+            </div>
+            <p className="modal-detail__comment-text">{post.comment}</p>
           </div>
         )}
-        <div className="post-modal__actions">
-          <a
-            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(shareUrl)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="post-modal__share"
-          >
-            Поделиться
-          </a>
-        </div>
       </div>
     </Modal>
   );

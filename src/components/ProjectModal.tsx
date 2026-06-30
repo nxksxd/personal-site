@@ -10,7 +10,7 @@ interface ProjectModalProps {
 
 export default function ProjectModal({ project, onClose }: ProjectModalProps) {
   return (
-    <Modal onClose={onClose}>
+    <Modal onClose={onClose} labelledBy="project-modal-title">
       {project.image ? (
         <div className="modal-detail__media">
           <img src={project.image} alt={project.title} />
