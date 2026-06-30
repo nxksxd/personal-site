@@ -9,6 +9,7 @@ import HomeSection from "./components/HomeSection";
 import AllProjects from "./components/AllProjects";
 import AllNews from "./components/AllNews";
 import Footer from "./components/Footer";
+import Terms from "./components/Terms";
 import AdminPanel from "./components/admin/AdminPanel";
 import AdminLogin from "./components/admin/AdminLogin";
 
@@ -64,6 +65,18 @@ function NewsPage() {
   );
 }
 
+function TermsPage() {
+  return (
+    <>
+      <Header />
+      <main id="main">
+        <Terms />
+      </main>
+      <Footer />
+    </>
+  );
+}
+
 function AdminGate({ onBack }: { onBack: () => void }) {
   const { isAuthenticated } = useAuth();
 
@@ -86,6 +99,8 @@ export default function App() {
         return <ProjectsPage />;
       case "#news":
         return <NewsPage />;
+      case "#terms":
+        return <TermsPage />;
       default:
         return <Home />;
     }
