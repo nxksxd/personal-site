@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from .auth import get_current_user
 from .database import Base, engine, get_db
+from .migrate import run_migrations
 from .models import User
 from .routers import auth, categories, dashboard, posts, projects, socials, uploads
 from .seed import seed_content
@@ -31,6 +32,18 @@ UPLOADS_DIR = os.path.join(DATA_DIR, "uploads")
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 
 Base.metadata.create_all(bind=engine)
+
+# Reconcile columns on pre-existing tables (persistent /data volume may hold an
+# older schema). Prevents "no such column" crashes on restart after a model
+# adds fields. Safe no-op when the schema is already current.
+try:
+    _applied = run_migrations(engine)
+    if _applied:
+        print(f"[migrate] applied {len(_applied)} column migration(s):")
+        for _ddl in _applied:
+            print(f"[migrate]   {_ddl}")
+except Exception as exc:  # pragma: no cover - defensive, never block startup
+    print(f"[migrate] WARNING: auto-migration failed: {exc}")
 
 
 @asynccontextmanager
