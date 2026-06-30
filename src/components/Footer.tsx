@@ -41,7 +41,7 @@ export default function Footer() {
         </div>
 
         <div className="footer__bottom">
-          <span>&copy; {new Date().getFullYear()} nxksxd. Все права защищены.</span>
+          <span>&copy; 2024–{new Date().getFullYear()} Nikita Syromyatnikov. Все права защищены.</span>
         </div>
       </div>
     </footer>
