@@ -54,6 +54,16 @@ class PostBase(BaseModel):
     meta_description: Optional[str] = None
     og_image: Optional[str] = None
     category_id: Optional[int] = None
+    project_id: Optional[int] = None
+    post_type: Optional[str] = None
+
+
+class ProjectRef(BaseModel):
+    """Lightweight project reference embedded in a post."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    title: str
 
 
 class PostOut(PostBase):
@@ -63,6 +73,7 @@ class PostOut(PostBase):
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
     category: Optional[CategoryOut] = None
+    project: Optional[ProjectRef] = None
 
 
 # ---------- Projects ----------
@@ -80,6 +91,7 @@ class ProjectOut(ProjectBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    post_count: int = 0
 
 
 # ---------- Socials ----------

@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
 from ..database import get_db
-from ..models import Project, User
+from ..models import Post, Project, User
 from ..schemas import ProjectBase, ProjectOut
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
@@ -11,7 +12,23 @@ router = APIRouter(prefix="/api/projects", tags=["projects"])
 
 @router.get("", response_model=list[ProjectOut])
 def list_projects(db: Session = Depends(get_db)):
-    return db.query(Project).order_by(Project.id).all()
+    projects = db.query(Project).order_by(Project.id).all()
+
+    # Count published posts per project in a single grouped query.
+    rows = (
+        db.query(Post.project_id, func.count(Post.id))
+        .filter(Post.status == "published", Post.project_id.isnot(None))
+        .group_by(Post.project_id)
+        .all()
+    )
+    counts = {row[0]: row[1] for row in rows}
+
+    result = []
+    for p in projects:
+        out = ProjectOut.model_validate(p)
+        out.post_count = counts.get(p.id, 0)
+        result.append(out)
+    return result
 
 
 @router.post("", response_model=ProjectOut, status_code=status.HTTP_201_CREATED)

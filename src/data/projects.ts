@@ -6,4 +6,5 @@ export interface Project {
   link: string;
   github?: string;
   image?: string;
+  post_count?: number;
 }

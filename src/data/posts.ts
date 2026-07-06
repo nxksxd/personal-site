@@ -12,6 +12,9 @@ export interface Post {
   og_image?: string;
   category_id?: number;
   category?: Category;
+  project_id?: number;
+  post_type?: string;
+  project?: { id: number; title: string };
 }
 
 export interface Project {

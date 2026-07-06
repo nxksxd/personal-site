@@ -40,11 +40,12 @@ def _unique_slug(db: Session, base_slug: str, exclude_id: Optional[int] = None) 
 def list_posts(
     status_filter: Optional[str] = Query(None, alias="status"),
     category_id: Optional[int] = Query(None),
+    project_id: Optional[int] = Query(None),
     tag: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
     """Public endpoint — returns only published posts by default."""
-    q = db.query(Post).options(joinedload(Post.category))
+    q = db.query(Post).options(joinedload(Post.category), joinedload(Post.project))
 
     # Public: only published unless explicitly filtered
     if status_filter is None:
@@ -54,6 +55,9 @@ def list_posts(
 
     if category_id is not None:
         q = q.filter(Post.category_id == category_id)
+
+    if project_id is not None:
+        q = q.filter(Post.project_id == project_id)
 
     if tag is not None:
         # JSON array contains — SQLite compatible
@@ -66,18 +70,22 @@ def list_posts(
 def list_all_posts(
     status_filter: Optional[str] = Query(None, alias="status"),
     category_id: Optional[int] = Query(None),
+    project_id: Optional[int] = Query(None),
     tag: Optional[str] = Query(None),
     _: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Admin endpoint — returns all posts including drafts."""
-    q = db.query(Post).options(joinedload(Post.category))
+    q = db.query(Post).options(joinedload(Post.category), joinedload(Post.project))
 
     if status_filter is not None:
         q = q.filter(Post.status == status_filter)
 
     if category_id is not None:
         q = q.filter(Post.category_id == category_id)
+
+    if project_id is not None:
+        q = q.filter(Post.project_id == project_id)
 
     if tag is not None:
         q = q.filter(Post.tags.contains(tag))
@@ -87,7 +95,12 @@ def list_all_posts(
 
 @router.get("/{post_id}", response_model=PostOut)
 def get_post(post_id: int, db: Session = Depends(get_db)):
-    post = db.query(Post).options(joinedload(Post.category)).filter(Post.id == post_id).first()
+    post = (
+        db.query(Post)
+        .options(joinedload(Post.category), joinedload(Post.project))
+        .filter(Post.id == post_id)
+        .first()
+    )
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Не найдено")
     return post
@@ -114,8 +127,13 @@ def create_post(
     db.commit()
     db.refresh(post)
 
-    # Reload with relationship
-    post = db.query(Post).options(joinedload(Post.category)).filter(Post.id == post.id).first()
+    # Reload with relationships
+    post = (
+        db.query(Post)
+        .options(joinedload(Post.category), joinedload(Post.project))
+        .filter(Post.id == post.id)
+        .first()
+    )
     return post
 
 
@@ -144,8 +162,13 @@ def update_post(
     db.commit()
     db.refresh(post)
 
-    # Reload with relationship
-    post = db.query(Post).options(joinedload(Post.category)).filter(Post.id == post.id).first()
+    # Reload with relationships
+    post = (
+        db.query(Post)
+        .options(joinedload(Post.category), joinedload(Post.project))
+        .filter(Post.id == post.id)
+        .first()
+    )
     return post
 
 

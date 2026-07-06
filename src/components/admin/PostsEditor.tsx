@@ -15,7 +15,11 @@ interface PostForm {
   meta_description: string;
   og_image: string;
   category_id: string;
+  project_id: string;
+  post_type: string;
 }
+
+const POST_TYPES = ["Релиз", "Devlog", "Анонс", "Заметка"];
 
 const emptyForm: PostForm = {
   title: "",
@@ -29,6 +33,8 @@ const emptyForm: PostForm = {
   meta_description: "",
   og_image: "",
   category_id: "",
+  project_id: "",
+  post_type: "",
 };
 
 function postToForm(post: Post): PostForm {
@@ -44,6 +50,8 @@ function postToForm(post: Post): PostForm {
     meta_description: post.meta_description ?? "",
     og_image: post.og_image ?? "",
     category_id: post.category_id?.toString() ?? "",
+    project_id: post.project_id?.toString() ?? "",
+    post_type: post.post_type ?? "",
   };
 }
 
@@ -65,11 +73,13 @@ function formToPost(form: PostForm, id?: number): Omit<Post, "id"> & { id?: numb
     meta_description: form.meta_description || undefined,
     og_image: form.og_image || undefined,
     category_id: form.category_id ? parseInt(form.category_id) : undefined,
+    project_id: form.project_id ? parseInt(form.project_id) : undefined,
+    post_type: form.post_type || undefined,
   };
 }
 
 export default function PostsEditor() {
-  const { allPosts, categories, addPost, updatePost, deletePost, uploadFile } = useData();
+  const { allPosts, categories, projects, addPost, updatePost, deletePost, uploadFile } = useData();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState<PostForm>(emptyForm);
@@ -183,6 +193,40 @@ export default function PostsEditor() {
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Project & Type row — связь новости с проектом (devlog) */}
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+        <div className="admin__field" style={{ flex: 1, minWidth: 140 }}>
+          <label className="admin__label">Проект</label>
+          <select
+            className="admin__input"
+            value={form.project_id}
+            onChange={(e) => updateField("project_id", e.target.value)}
+          >
+            <option value="">Без проекта (общая новость)</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.title}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="admin__field" style={{ flex: 1, minWidth: 140 }}>
+          <label className="admin__label">Тип записи</label>
+          <select
+            className="admin__input"
+            value={form.post_type}
+            onChange={(e) => updateField("post_type", e.target.value)}
+          >
+            <option value="">Не указан</option>
+            {POST_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {t}
               </option>
             ))}
           </select>

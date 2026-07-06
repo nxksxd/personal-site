@@ -40,10 +40,13 @@ class Post(Base):
     meta_description = Column(Text, nullable=True)
     og_image = Column(Text, nullable=True)
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True)
+    post_type = Column(String, nullable=True)
     created_at = Column(String, nullable=True)
     updated_at = Column(String, nullable=True)
 
     category = relationship("Category", back_populates="posts")
+    project = relationship("Project", back_populates="posts")
 
 
 class Project(Base):
@@ -56,6 +59,8 @@ class Project(Base):
     link = Column(String, nullable=False, default="#")
     github = Column(String, nullable=True)
     image = Column(Text, nullable=True)
+
+    posts = relationship("Post", back_populates="project")
 
 
 class Social(Base):
