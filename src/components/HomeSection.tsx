@@ -2,7 +2,9 @@ import { useState, useMemo } from "react";
 import { useData } from "../context/data-context";
 import { CommentIcon } from "./Icons";
 import PostModal from "./PostModal";
+import ProjectModal from "./ProjectModal";
 import type { Post } from "../data/posts";
+import type { Project } from "../data/projects";
 import "./HomeSection.css";
 
 function formatDate(dateStr: string): string {
@@ -14,31 +16,7 @@ function formatDate(dateStr: string): string {
   });
 }
 
-function timeAgo(dateStr: string): string {
-  const then = new Date(dateStr).getTime();
-  const now = Date.now();
-  const days = Math.floor((now - then) / 86400000);
-  if (days < 0) return "";
-  if (days === 0) return "сегодня";
-  if (days === 1) return "вчера";
-  if (days < 7) return `${days} дн. назад`;
-  if (days < 30) {
-    const w = Math.floor(days / 7);
-    return `${w} нед. назад`;
-  }
-  const m = Math.floor(days / 30);
-  if (m < 12) return `${m} мес. назад`;
-  const y = Math.floor(days / 365);
-  return `${y} г. назад`;
-}
-
-function monthLabel(dateStr: string): string {
-  const d = new Date(dateStr);
-  const s = d.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-// Type → emoji + color mapping
+// Type → emoji mapping
 const TYPE_META: Record<string, { icon: string }> = {
   "Релиз": { icon: "🚀" },
   "Devlog": { icon: "🛠" },
@@ -49,174 +27,160 @@ const TYPE_META: Record<string, { icon: string }> = {
 export default function HomeSection() {
   const { projects, posts } = useData();
   const [activePost, setActivePost] = useState<Post | null>(null);
-  const [filterProject, setFilterProject] = useState<number | null>(null);
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
 
+  // Projects: newest first.
   const sortedProjects = useMemo(
-    () => [...projects].sort((a, b) => b.id - a.id),
+    () => [...projects].sort((a, b) => b.id - a.id).slice(0, 4),
     [projects]
   );
 
-  // Published posts, newest first, optionally filtered by project.
-  const feedPosts = useMemo(() => {
-    let list = posts.filter((p) => p.status !== "draft");
-    if (filterProject !== null) {
-      list = list.filter((p) => p.project_id === filterProject);
-    }
-    return list.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 12);
-  }, [posts, filterProject]);
-
-  // Group feed by month for the timeline look.
-  const grouped = useMemo(() => {
-    const map = new Map<string, Post[]>();
-    for (const p of feedPosts) {
-      const key = monthLabel(p.date);
-      const arr = map.get(key) ?? [];
-      arr.push(p);
-      map.set(key, arr);
-    }
-    return Array.from(map.entries());
-  }, [feedPosts]);
-
-  const activeFilterName =
-    filterProject !== null
-      ? projects.find((p) => p.id === filterProject)?.title ?? null
-      : null;
+  // Published posts, newest first.
+  const feedPosts = useMemo(
+    () =>
+      posts
+        .filter((p) => p.status !== "draft")
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .slice(0, 4),
+    [posts]
+  );
 
   return (
     <section className="home-section">
       <div className="home-section__inner">
-        {/* ── Проекты: узкая витрина-чипы ── */}
-        <div className="devlog-projects">
-          <div className="devlog-projects__head">
-            <h2 className="devlog-projects__title">Проекты</h2>
-            <a href="#projects" className="devlog-projects__all">
-              Все &rarr;
+        {/* ── Колонка: Проекты ── */}
+        <div className="home-col">
+          <div className="home-col__head">
+            <h2 className="home-col__title">Проекты</h2>
+            <a href="#projects" className="home-col__all">
+              Все проекты &rarr;
             </a>
           </div>
-          <div className="devlog-projects__chips">
-            {sortedProjects.map((p) => (
-              <button
-                key={p.id}
-                className={`project-chip${
-                  filterProject === p.id ? " project-chip--active" : ""
-                }`}
-                onClick={() =>
-                  setFilterProject(filterProject === p.id ? null : p.id)
-                }
-                title={
-                  filterProject === p.id
-                    ? "Показать все обновления"
-                    : `Обновления по проекту ${p.title}`
-                }
+
+          <div className="home-col__cards">
+            {sortedProjects.map((project) => (
+              <article
+                key={project.id}
+                className="project-card"
+                role="button"
+                tabIndex={0}
+                onClick={() => setActiveProject(project)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setActiveProject(project);
+                  }
+                }}
               >
-                <span className="project-chip__name">{p.title}</span>
-                {p.post_count ? (
-                  <span className="project-chip__count">
-                    ● {p.post_count}
-                  </span>
-                ) : null}
-              </button>
+                {project.image && (
+                  <div className="project-card__image-wrap">
+                    <img
+                      className="project-card__image"
+                      src={project.image}
+                      alt={project.title}
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+                <div className="project-card__body">
+                  <div className="project-card__head">
+                    <h3 className="project-card__title">{project.title}</h3>
+                    {project.post_count ? (
+                      <span
+                        className="project-card__count"
+                        title={`${project.post_count} обновлений`}
+                      >
+                        ● {project.post_count}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="project-card__desc">
+                    {project.description.length > 120
+                      ? project.description.slice(0, 120) + "…"
+                      : project.description}
+                  </p>
+                  {project.tags && project.tags.length > 0 && (
+                    <div className="project-card__tags">
+                      {project.tags.slice(0, 3).map((tag) => (
+                        <span key={tag} className="project-card__tag">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </article>
             ))}
           </div>
         </div>
 
-        {/* ── Devlog: лента обновлений ── */}
-        <div className="devlog-feed">
-          <div className="devlog-feed__head">
-            <div>
-              <h2 className="devlog-feed__title">Devlog</h2>
-              <p className="devlog-feed__subtitle">
-                {activeFilterName
-                  ? `Обновления · ${activeFilterName}`
-                  : "Что нового по проектам"}
-              </p>
-            </div>
-            {filterProject !== null && (
-              <button
-                className="devlog-feed__clear"
-                onClick={() => setFilterProject(null)}
-              >
-                ✕ Сбросить фильтр
-              </button>
-            )}
-            {filterProject === null && (
-              <a href="#news" className="devlog-feed__all">
-                Весь devlog &rarr;
-              </a>
-            )}
+        {/* ── Колонка: Новости ── */}
+        <div className="home-col">
+          <div className="home-col__head">
+            <h2 className="home-col__title">Новости</h2>
+            <a href="#news" className="home-col__all">
+              Все новости &rarr;
+            </a>
           </div>
 
           {feedPosts.length === 0 && (
-            <p className="devlog-feed__empty">
-              {activeFilterName
-                ? `Пока нет обновлений по проекту ${activeFilterName}.`
-                : "Пока нет обновлений."}
-            </p>
+            <p className="home-col__empty">Пока нет новостей.</p>
           )}
 
-          {grouped.map(([month, monthPosts]) => (
-            <div key={month} className="devlog-month">
-              <div className="devlog-month__label">
-                <span>{month}</span>
-                <span className="devlog-month__line" />
-              </div>
-
-              {monthPosts.map((post) => {
-                const type = post.post_type;
-                const typeMeta = type ? TYPE_META[type] : undefined;
-                return (
-                  <article
-                    key={post.id}
-                    className="devlog-entry"
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setActivePost(post)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        setActivePost(post);
-                      }
-                    }}
-                  >
-                    <div className="devlog-entry__meta">
+          <div className="home-col__cards">
+            {feedPosts.map((post) => {
+              const type = post.post_type;
+              const typeMeta = type ? TYPE_META[type] : undefined;
+              return (
+                <article
+                  key={post.id}
+                  className="news-card"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setActivePost(post)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setActivePost(post);
+                    }
+                  }}
+                >
+                  {post.image && (
+                    <div className="news-card__image-wrap">
+                      <img
+                        className="news-card__image"
+                        src={post.image}
+                        alt={post.title}
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
+                  <div className="news-card__body">
+                    <div className="news-card__meta">
                       {post.project && (
-                        <span
-                          className="devlog-entry__project"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setFilterProject(post.project!.id);
-                          }}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.stopPropagation();
-                              setFilterProject(post.project!.id);
-                            }
-                          }}
-                        >
+                        <span className="news-card__project">
                           {post.project.title}
                         </span>
                       )}
                       {type && (
-                        <span className="devlog-entry__type">
+                        <span className="news-card__type">
                           {typeMeta?.icon} {type}
                         </span>
                       )}
-                      <time className="devlog-entry__date">
-                        {formatDate(post.date)} · {timeAgo(post.date)}
+                      <time className="news-card__date">
+                        {formatDate(post.date)}
                       </time>
                     </div>
 
-                    <h3 className="devlog-entry__title">{post.title}</h3>
-                    <p className="devlog-entry__excerpt">
-                      {post.content.length > 160
-                        ? post.content.slice(0, 160) + "…"
+                    <h3 className="news-card__title">{post.title}</h3>
+                    <p className="news-card__content">
+                      {post.content.length > 140
+                        ? post.content.slice(0, 140) + "…"
                         : post.content}
                     </p>
 
                     {post.comment && (
-                      <div className="devlog-entry__comment">
+                      <div className="news-card__comment">
                         <CommentIcon />
                         <span>
                           {post.comment.length > 90
@@ -225,24 +189,22 @@ export default function HomeSection() {
                         </span>
                       </div>
                     )}
-
-                    <span className="devlog-entry__read">Читать &rarr;</span>
-                  </article>
-                );
-              })}
-            </div>
-          ))}
-
-          {feedPosts.length > 0 && (
-            <a href="#news" className="devlog-feed__more">
-              Весь devlog &rarr;
-            </a>
-          )}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {activePost && (
         <PostModal post={activePost} onClose={() => setActivePost(null)} />
+      )}
+      {activeProject && (
+        <ProjectModal
+          project={activeProject}
+          onClose={() => setActiveProject(null)}
+        />
       )}
     </section>
   );
