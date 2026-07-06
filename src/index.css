@@ -12,12 +12,12 @@
   --text-primary: #1a1a2e;
   --text-secondary: #4a4a68;
   --text-tertiary: #67677e;
-  --accent: #6366f1;
+  --accent: #6d28d9;
   --accent-secondary: #8b5cf6;
-  --accent-muted: rgba(99, 102, 241, 0.3);
-  --tag-bg: rgba(99, 102, 241, 0.1);
-  --comment-bg: rgba(99, 102, 241, 0.05);
-  --card-shadow: rgba(99, 102, 241, 0.08);
+  --accent-muted: rgba(109, 40, 217, 0.3);
+  --tag-bg: rgba(109, 40, 217, 0.1);
+  --comment-bg: rgba(109, 40, 217, 0.05);
+  --card-shadow: rgba(109, 40, 217, 0.1);
   color-scheme: light;
 }
 
@@ -30,12 +30,12 @@
   --text-primary: #e8e8f0;
   --text-secondary: #a0a0b8;
   --text-tertiary: #6a6a80;
-  --accent: #818cf8;
-  --accent-secondary: #a78bfa;
-  --accent-muted: rgba(129, 140, 248, 0.3);
-  --tag-bg: rgba(129, 140, 248, 0.12);
-  --comment-bg: rgba(129, 140, 248, 0.06);
-  --card-shadow: rgba(0, 0, 0, 0.3);
+  --accent: #a78bfa;
+  --accent-secondary: #c4b5fd;
+  --accent-muted: rgba(167, 139, 250, 0.3);
+  --tag-bg: rgba(167, 139, 250, 0.14);
+  --comment-bg: rgba(167, 139, 250, 0.07);
+  --card-shadow: rgba(0, 0, 0, 0.35);
   color-scheme: dark;
 }
 

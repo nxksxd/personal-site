@@ -10,6 +10,8 @@ export default function AllProjects() {
   const { projects } = useData();
   const [activeProject, setActiveProject] = useState<Project | null>(null);
 
+  const sortedProjects = [...projects].sort((a, b) => b.id - a.id);
+
   return (
     <section className="all-projects">
       <div className="all-projects__inner">
@@ -20,7 +22,7 @@ export default function AllProjects() {
         </p>
 
         <div className="all-projects__grid">
-          {projects.map((p) => (
+          {sortedProjects.map((p) => (
             <article
               key={p.id}
               className="project-card project-card--clickable"

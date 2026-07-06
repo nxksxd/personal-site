@@ -20,7 +20,9 @@ export default function AllNews() {
   const [activePost, setActivePost] = useState<Post | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
-  const publishedPosts = allPosts.filter((p) => p.status !== "draft");
+  const publishedPosts = allPosts
+    .filter((p) => p.status !== "draft")
+    .sort((a, b) => b.date.localeCompare(a.date));
   const posts = selectedCategory
     ? publishedPosts.filter((p) => p.category_id === selectedCategory)
     : publishedPosts;

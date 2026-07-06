@@ -23,10 +23,13 @@ export default function HomeSection() {
   const [activePost, setActivePost] = useState<Post | null>(null);
   const [activeProject, setActiveProject] = useState<Project | null>(null);
 
-  const displayProjects = projects.slice(0, 3);
+  const displayProjects = [...projects]
+    .sort((a, b) => b.id - a.id)
+    .slice(0, 3);
   const displayPosts = posts
     .filter((p) => p.status !== "draft")
-    .slice(0, 2);
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 3);
 
   return (
     <section className="home-section">

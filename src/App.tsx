@@ -33,8 +33,8 @@ function Home() {
     <>
       <Header />
       <main id="main">
-        <HomeSection />
         <Hero />
+        <HomeSection />
       </main>
       <Footer />
     </>
