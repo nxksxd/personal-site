@@ -108,7 +108,7 @@
   background: var(--surface);
   -webkit-backdrop-filter: blur(12px) saturate(160%);
   backdrop-filter: blur(12px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--border);
   border-radius: 999px;
   width: 40px;
   height: 40px;
