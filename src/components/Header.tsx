@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTheme } from "../context/theme-context";
 import { SunIcon, MoonIcon, MenuIcon, CloseIcon } from "./Icons";
+import { useVisitorCountry, countryCodeToFlag } from "../hooks/useVisitorCountry";
 import "./Header.css";
 
 const NAV_ITEMS = [
@@ -13,6 +14,8 @@ const NAV_ITEMS = [
 export default function Header() {
   const { theme, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { code: countryCode, name: countryName } = useVisitorCountry();
+  const flag = countryCodeToFlag(countryCode);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     setMenuOpen(false);
@@ -42,6 +45,16 @@ export default function Header() {
           className="header__logo"
           onClick={() => setMenuOpen(false)}
         >
+          {flag && (
+            <span
+              className="header__flag"
+              title={countryName ? `Вы зашли из: ${countryName}` : undefined}
+              aria-label={countryName ? `Страна: ${countryName}` : "Флаг страны"}
+              role="img"
+            >
+              {flag}
+            </span>
+          )}
           nxksxd<span className="header__logo-dot">.</span>
         </a>
 
