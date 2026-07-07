@@ -52,10 +52,10 @@
   --tag-bg: rgba(167, 139, 250, 0.14);
   --comment-bg: rgba(167, 139, 250, 0.07);
   --card-shadow: rgba(0, 0, 0, 0.35);
-  /* Glass tokens — dark variants (avoid the white halo the light values cause) */
+  /* Glass tokens — dark variants: no visible outline, shadow-only separation */
   --glass-blur: blur(16px) saturate(140%);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.06);
-  --glass-highlight: rgba(255, 255, 255, 0.04);
+  --glass-border: 1px solid transparent;
+  --glass-highlight: transparent;
   color-scheme: dark;
 }
 
