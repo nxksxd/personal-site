@@ -10,7 +10,11 @@ export function useVisitorCountry(): { code: string | null; name: string | null 
   const [name, setName] = useState<string | null>(null);
 
   useEffect(() => {
-    // Serve from cache if we already resolved it this session.
+    let cancelled = false;
+
+    // 1. Show the cached country immediately (avoids an empty flag / flicker
+    //    on every reload). This is only the *initial* paint — we still verify
+    //    against the network below, so a changed location is picked up.
     try {
       const cached = sessionStorage.getItem("visitor_country");
       if (cached) {
@@ -18,14 +22,11 @@ export function useVisitorCountry(): { code: string | null; name: string | null 
         if (parsed?.code) {
           setCode(parsed.code);
           setName(parsed.name ?? null);
-          return;
         }
       }
     } catch {
       // ignore cache errors
     }
-
-    let cancelled = false;
 
     const cache = (c: string, n: string | null) => {
       try {
@@ -56,20 +57,22 @@ export function useVisitorCountry(): { code: string | null; name: string | null 
       throw new Error("ipapi.co: no country");
     };
 
+    // 2. Always re-check the live location on every page load. If it differs
+    //    from what we painted from cache, update the flag and rewrite cache.
     (async () => {
       for (const attempt of [tryIpwho, tryIpapi]) {
         try {
           const res = await attempt();
           if (cancelled) return;
-          setCode(res.code);
-          setName(res.name);
+          setCode((prev) => (prev === res.code ? prev : res.code));
+          setName((prev) => (prev === res.name ? prev : res.name));
           cache(res.code, res.name);
           return;
         } catch {
           // try next provider
         }
       }
-      // Both failed — leave null (flag simply won't render).
+      // Both failed — keep whatever we showed from cache (or nothing).
     })();
 
     return () => {
