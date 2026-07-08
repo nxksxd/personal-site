@@ -40,6 +40,15 @@ class CategoryOut(CategoryBase):
     id: int
 
 
+# ---------- Shared ----------
+
+class SocialLink(BaseModel):
+    """A social/external link attached to a post or project."""
+    label: str = Field(min_length=1)
+    url: str = Field(min_length=1)
+    icon: str = "link"
+
+
 # ---------- Posts ----------
 
 class PostBase(BaseModel):
@@ -49,6 +58,7 @@ class PostBase(BaseModel):
     image: Optional[str] = None
     comment: Optional[str] = None
     tags: list[str] = Field(default_factory=list)
+    links: list[SocialLink] = Field(default_factory=list)
     status: str = "published"
     slug: Optional[str] = None
     meta_description: Optional[str] = None
@@ -84,6 +94,7 @@ class ProjectBase(BaseModel):
     tags: list[str] = Field(default_factory=list)
     link: str = "#"
     github: Optional[str] = None
+    links: list[SocialLink] = Field(default_factory=list)
     image: Optional[str] = None
 
 

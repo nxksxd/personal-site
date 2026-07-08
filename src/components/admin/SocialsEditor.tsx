@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useData } from "../../context/data-context";
 import type { Social } from "../../data/socials";
-
-const ICON_OPTIONS = ["github", "telegram", "email"];
+import { SOCIAL_PLATFORMS } from "../../lib/socialIcons";
 
 interface SocialForm {
   name: string;
@@ -95,9 +94,9 @@ export default function SocialsEditor() {
           value={form.icon}
           onChange={(e) => updateField("icon", e.target.value)}
         >
-          {ICON_OPTIONS.map((icon) => (
-            <option key={icon} value={icon}>
-              {icon}
+          {SOCIAL_PLATFORMS.map((p) => (
+            <option key={p.value} value={p.value}>
+              {p.label}
             </option>
           ))}
         </select>

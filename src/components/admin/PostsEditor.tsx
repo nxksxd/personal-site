@@ -1,7 +1,9 @@
 import { useState, useRef } from "react";
 import { useData } from "../../context/data-context";
 import MarkdownEditor from "./MarkdownEditor";
+import LinksEditor from "./LinksEditor";
 import type { Post } from "../../data/posts";
+import type { SocialLink } from "../../lib/socialIcons";
 
 interface PostForm {
   title: string;
@@ -10,6 +12,7 @@ interface PostForm {
   image: string;
   comment: string;
   tags: string;
+  links: SocialLink[];
   status: "published" | "draft";
   slug: string;
   meta_description: string;
@@ -28,6 +31,7 @@ const emptyForm: PostForm = {
   image: "",
   comment: "",
   tags: "",
+  links: [],
   status: "published",
   slug: "",
   meta_description: "",
@@ -45,6 +49,7 @@ function postToForm(post: Post): PostForm {
     image: post.image ?? "",
     comment: post.comment ?? "",
     tags: post.tags?.join(", ") ?? "",
+    links: post.links ?? [],
     status: post.status ?? "published",
     slug: post.slug ?? "",
     meta_description: post.meta_description ?? "",
@@ -60,6 +65,7 @@ function formToPost(form: PostForm, id?: number): Omit<Post, "id"> & { id?: numb
     .split(",")
     .map((t) => t.trim())
     .filter(Boolean);
+  const links = form.links.filter((l) => l.url.trim());
   return {
     ...(id !== undefined && { id }),
     title: form.title,
@@ -68,6 +74,7 @@ function formToPost(form: PostForm, id?: number): Omit<Post, "id"> & { id?: numb
     image: form.image || undefined,
     comment: form.comment || undefined,
     tags: tags.length > 0 ? tags : undefined,
+    links,
     status: form.status,
     slug: form.slug || undefined,
     meta_description: form.meta_description || undefined,
@@ -327,6 +334,11 @@ export default function PostsEditor() {
           placeholder="релиз, FinAI"
         />
       </div>
+
+      <LinksEditor
+        links={form.links}
+        onChange={(links) => setForm((f) => ({ ...f, links }))}
+      />
 
       {/* SEO fields toggle */}
       <button

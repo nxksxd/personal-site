@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import { useData } from "../../context/data-context";
+import LinksEditor from "./LinksEditor";
 import type { Project } from "../../data/projects";
+import type { SocialLink } from "../../lib/socialIcons";
 
 interface ProjectForm {
   title: string;
@@ -8,6 +10,7 @@ interface ProjectForm {
   tags: string;
   link: string;
   github: string;
+  links: SocialLink[];
   image: string;
 }
 
@@ -17,6 +20,7 @@ const emptyForm: ProjectForm = {
   tags: "",
   link: "",
   github: "",
+  links: [],
   image: "",
 };
 
@@ -27,6 +31,7 @@ function projectToForm(p: Project): ProjectForm {
     tags: p.tags.join(", "),
     link: p.link,
     github: p.github ?? "",
+    links: p.links ?? [],
     image: p.image ?? "",
   };
 }
@@ -39,6 +44,7 @@ function formToProject(
     .split(",")
     .map((t) => t.trim())
     .filter(Boolean);
+  const links = form.links.filter((l) => l.url.trim());
   return {
     ...(id !== undefined && { id }),
     title: form.title,
@@ -46,6 +52,7 @@ function formToProject(
     tags,
     link: form.link || "#",
     github: form.github || undefined,
+    links,
     image: form.image || undefined,
   };
 }
@@ -169,6 +176,11 @@ export default function ProjectsEditor() {
           placeholder="https://github.com/..."
         />
       </div>
+
+      <LinksEditor
+        links={form.links}
+        onChange={(links) => setForm((f) => ({ ...f, links }))}
+      />
       <div className="admin__field">
         <label className="admin__label">Изображение</label>
         <div className="admin__image-field">

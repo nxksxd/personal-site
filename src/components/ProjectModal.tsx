@@ -1,6 +1,7 @@
 import Modal from "./Modal";
 import { gradientFor } from "../lib/gradient";
 import { ExternalLinkIcon, GitHubIcon } from "./Icons";
+import LinksBlock from "./LinksBlock";
 import type { Project } from "../data/projects";
 
 interface ProjectModalProps {
@@ -64,6 +65,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
             </a>
           </div>
         )}
+        <LinksBlock links={project.links} />
       </div>
     </Modal>
   );

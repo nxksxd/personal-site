@@ -33,6 +33,8 @@ class Post(Base):
     image = Column(Text, nullable=True)
     comment = Column(Text, nullable=True)
     tags = Column(JSON, nullable=False, default=list)
+    # Social/external links attached to the post: [{label, url, icon}, ...]
+    links = Column(JSON, nullable=False, default=list)
 
     # CMS fields
     status = Column(String, nullable=False, default="published")
@@ -58,6 +60,8 @@ class Project(Base):
     tags = Column(JSON, nullable=False, default=list)
     link = Column(String, nullable=False, default="#")
     github = Column(String, nullable=True)
+    # Social/external links: [{label, url, icon}, ...]
+    links = Column(JSON, nullable=False, default=list)
     image = Column(Text, nullable=True)
 
     posts = relationship("Post", back_populates="project")

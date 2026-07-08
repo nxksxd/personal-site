@@ -1,3 +1,7 @@
+import type { SocialLink } from "../lib/socialIcons";
+
+export type { SocialLink };
+
 export interface Post {
   id: number;
   title: string;
@@ -6,6 +10,7 @@ export interface Post {
   image?: string;
   comment?: string;
   tags?: string[];
+  links?: SocialLink[];
   status?: "published" | "draft";
   slug?: string;
   meta_description?: string;
@@ -24,6 +29,7 @@ export interface Project {
   image: string;
   link?: string;
   github?: string;
+  links?: SocialLink[];
   status?: "active" | "archived";
   tags?: string[];
 }

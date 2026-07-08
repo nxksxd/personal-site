@@ -1,6 +1,7 @@
 import Modal from "./Modal";
 import { CommentIcon } from "./Icons";
 import MarkdownContent from "./MarkdownContent";
+import LinksBlock from "./LinksBlock";
 import type { Post } from "../data/posts";
 
 function formatDate(dateStr: string): string {
@@ -64,6 +65,7 @@ export default function PostModal({ post, onClose }: PostModalProps) {
             <p className="modal-detail__comment-text">{post.comment}</p>
           </div>
         )}
+        <LinksBlock links={post.links} />
       </div>
     </Modal>
   );
