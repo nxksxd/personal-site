@@ -109,6 +109,10 @@ _frontend_dist = os.getenv(
 )
 if os.path.isdir(_frontend_dist):
     _index = os.path.join(_frontend_dist, "index.html")
+    # Absolute, symlink-resolved root the SPA is allowed to serve from. Used
+    # to contain every candidate path and block path-traversal (e.g. a request
+    # for "..%2f..%2fetc%2fpasswd" that decodes to "../../etc/passwd").
+    _dist_root = os.path.realpath(_frontend_dist)
     app.mount(
         "/assets",
         StaticFiles(directory=os.path.join(_frontend_dist, "assets")),
@@ -117,7 +121,14 @@ if os.path.isdir(_frontend_dist):
 
     @app.get("/{full_path:path}")
     def spa(full_path: str):
-        candidate = os.path.join(_frontend_dist, full_path)
-        if full_path and os.path.isfile(candidate):
+        candidate = os.path.realpath(os.path.join(_dist_root, full_path))
+        # Only serve the file if it resolves to something *inside* the dist
+        # root. Anything escaping the root (traversal) falls through to the
+        # SPA index instead of leaking arbitrary files from the container.
+        if (
+            full_path
+            and (candidate == _dist_root or candidate.startswith(_dist_root + os.sep))
+            and os.path.isfile(candidate)
+        ):
             return FileResponse(candidate)
         return FileResponse(_index)
