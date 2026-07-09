@@ -140,6 +140,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setSocials((prev) => prev.filter((s) => s.id !== id));
   }, []);
 
+  const reorderSocials = useCallback(async (orderedIds: number[]) => {
+    await api.post("/api/socials/reorder", { ordered_ids: orderedIds }, true);
+    setSocials((prev) => {
+      const byId = Object.fromEntries(prev.map((s) => [s.id, s]));
+      return orderedIds
+        .filter((id) => byId[id])
+        .map((id, i) => ({ ...byId[id], sort_order: i }));
+    });
+  }, []);
+
   // --- Categories ---
   const addCategory = useCallback(async (category: Omit<Category, "id">) => {
     const created = await api.post<Category>("/api/categories", category, true);
@@ -223,6 +233,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         addSocial,
         updateSocial,
         deleteSocial,
+        reorderSocials,
         addCategory,
         updateCategory,
         deleteCategory,

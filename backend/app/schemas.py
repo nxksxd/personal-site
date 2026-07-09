@@ -111,6 +111,7 @@ class SocialBase(BaseModel):
     name: str = Field(min_length=1)
     url: str = Field(min_length=1)
     icon: str = "github"
+    sort_order: int = 0
 
 
 class SocialOut(SocialBase):

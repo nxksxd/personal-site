@@ -1,12 +1,6 @@
 import { useData } from "../context/data-context";
-import { GitHubIcon, TelegramIcon, EmailIcon } from "./Icons";
+import { SocialIcon } from "../lib/socialIcons";
 import "./Footer.css";
-
-const iconMap: Record<string, React.ReactNode> = {
-  github: <GitHubIcon size={20} />,
-  telegram: <TelegramIcon size={20} />,
-  email: <EmailIcon size={20} />,
-};
 
 export default function Footer() {
   const { socials } = useData();
@@ -34,7 +28,7 @@ export default function Footer() {
                 className="footer__social-link"
                 title={s.name}
               >
-                {iconMap[s.icon] ?? <span>{s.name[0]}</span>}
+                {s.icon ? <SocialIcon icon={s.icon} size={20} /> : <span>{s.name[0]}</span>}
               </a>
             ))}
           </div>

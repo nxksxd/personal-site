@@ -74,6 +74,7 @@ class Social(Base):
     name = Column(String, nullable=False)
     url = Column(String, nullable=False)
     icon = Column(String, nullable=False, default="github")
+    sort_order = Column(Integer, nullable=False, default=0)
 
 
 class Upload(Base):

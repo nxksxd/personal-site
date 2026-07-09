@@ -21,6 +21,7 @@ export interface DataContextType {
   addSocial: (social: Omit<Social, "id">) => Promise<void>;
   updateSocial: (social: Social) => Promise<void>;
   deleteSocial: (id: number) => Promise<void>;
+  reorderSocials: (orderedIds: number[]) => Promise<void>;
   addCategory: (category: Omit<Category, "id">) => Promise<void>;
   updateCategory: (category: Category) => Promise<void>;
   deleteCategory: (id: number) => Promise<void>;
