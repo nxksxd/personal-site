@@ -25,7 +25,7 @@ export default function AllProjects() {
           {sortedProjects.map((p) => (
             <article
               key={p.id}
-              className="project-card project-card--clickable"
+              className="project-card project-card--clickable all-projects-card"
               role="button"
               tabIndex={0}
               onClick={() => setActiveProject(p)}

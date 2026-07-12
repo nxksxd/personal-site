@@ -66,19 +66,15 @@
   }
 }
 
-/* Compact landscape cards, matching the homepage reference. */
-@media (min-width: 821px) {
-  .all-projects__inner { max-width: 1200px; }
-  .all-projects__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .all-projects .project-card__media { aspect-ratio: auto; height: 160px; flex: 0 0 160px; }
-  .all-projects .project-card__body { height: 155px; padding: 18px 20px 20px; }
-  .all-projects .project-card__header { margin-bottom: 8px; }
-  .all-projects .project-card__desc {
-    display: -webkit-box;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    padding-bottom: 10px;
-  }
+/* Isolated full-page cards: preview and metadata never share a layer. */
+.all-projects__inner { max-width: 1200px; }
+.all-projects__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.all-projects-card { display: grid; grid-template-rows: 160px 155px; height: 315px; }
+.all-projects-card .project-card__media { width: 100%; height: 160px; min-height: 0; aspect-ratio: auto; }
+.all-projects-card .project-card__body { width: auto; height: auto; min-height: 0; padding: 18px 20px 20px; overflow: hidden; }
+.all-projects-card .project-card__header { margin-bottom: 8px; }
+.all-projects-card .project-card__desc { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; padding-bottom: 10px; }
+
+@media (max-width: 820px) {
+  .all-projects__grid { grid-template-columns: 1fr; }
 }
