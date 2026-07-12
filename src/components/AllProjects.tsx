@@ -4,6 +4,7 @@ import { ExternalLinkIcon, GitHubIcon } from "./Icons";
 import ProjectMedia from "./ProjectMedia";
 import ProjectModal from "./ProjectModal";
 import type { Project } from "../data/projects";
+import "./Projects.css";
 import "./AllProjects.css";
 
 export default function AllProjects() {
