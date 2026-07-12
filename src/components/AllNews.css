@@ -231,3 +231,18 @@
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
+
+/* Compact landscape cards, matching the homepage reference. */
+@media (min-width: 769px) {
+  .all-news__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .all-news__card { height: 315px; }
+  .all-news__card-body { min-height: 0; overflow: hidden; }
+  .all-news__card-content {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  .all-news__card-comment { display: none; }
+}

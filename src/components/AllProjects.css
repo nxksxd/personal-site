@@ -65,3 +65,20 @@
     gap: 16px;
   }
 }
+
+/* Compact landscape cards, matching the homepage reference. */
+@media (min-width: 821px) {
+  .all-projects__inner { max-width: 1200px; }
+  .all-projects__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .all-projects .project-card__media { aspect-ratio: auto; height: 160px; flex: 0 0 160px; }
+  .all-projects .project-card__body { height: 155px; padding: 18px 20px 20px; }
+  .all-projects .project-card__header { margin-bottom: 8px; }
+  .all-projects .project-card__desc {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    padding-bottom: 10px;
+  }
+}
