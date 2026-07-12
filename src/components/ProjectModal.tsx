@@ -44,7 +44,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
         </h2>
         <p className="modal-detail__text">{project.description}</p>
         <div className="modal-detail__links modal-detail__links--project">
-          <a href={`#project/${project.id}`} className="modal-detail__link" onClick={onClose}>Подробнее</a>
+          <a href={`/projects/${project.id}`} className="modal-detail__link" onClick={onClose}>Подробнее</a>
           {project.github && (
             <a
               href={project.github}

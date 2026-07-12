@@ -52,7 +52,7 @@ export default function HomeSection() {
         <div className="home-col">
           <div className="home-col__head">
             <h2 className="home-col__title">Проекты</h2>
-            <a href="#projects" className="home-col__all">
+            <a href="/projects" className="home-col__all">
               Все проекты &rarr;
             </a>
           </div>
@@ -118,7 +118,7 @@ export default function HomeSection() {
         <div className="home-col">
           <div className="home-col__head">
             <h2 className="home-col__title">Новости</h2>
-            <a href="#news" className="home-col__all">
+            <a href="/news" className="home-col__all">
               Все новости &rarr;
             </a>
           </div>

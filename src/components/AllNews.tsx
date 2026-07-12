@@ -30,7 +30,7 @@ export default function AllNews() {
   return (
     <section className="all-news">
       <div className="all-news__inner">
-        <a href="#" className="all-news__back">&larr; На главную</a>
+        <a href="/" className="all-news__back">&larr; На главную</a>
         <h1 className="all-news__title">Новости</h1>
         <p className="all-news__subtitle">Все обновления и заметки</p>
 

@@ -5,10 +5,10 @@ import { useVisitorCountry, countryCodeToFlag } from "../hooks/useVisitorCountry
 import "./Header.css";
 
 const NAV_ITEMS = [
-  { label: "Проекты", href: "#projects" },
-  { label: "Новости", href: "#news" },
-  { label: "Обо мне", href: "#hero" },
-  { label: "Контакты", href: "#footer" },
+  { label: "Проекты", href: "/projects" },
+  { label: "Новости", href: "/news" },
+  { label: "Обо мне", href: "/#hero" },
+  { label: "Контакты", href: "/#footer" },
 ];
 
 export default function Header() {
@@ -19,16 +19,17 @@ export default function Header() {
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     setMenuOpen(false);
-    if (href === "#footer" || href === "#hero") {
+    if (href === "/#footer" || href === "/#hero") {
       e.preventDefault();
-      if (window.location.hash !== "" && window.location.hash !== "#") {
-        window.location.assign("#");
+      const target = href.slice(2);
+      if (window.location.pathname !== "/") {
+        window.location.assign(href);
         setTimeout(() => {
-          const el = document.getElementById(href.slice(1));
+          const el = document.getElementById(target);
           el?.scrollIntoView({ behavior: "smooth" });
         }, 100);
       } else {
-        const el = document.getElementById(href.slice(1));
+        const el = document.getElementById(target);
         el?.scrollIntoView({ behavior: "smooth" });
       }
     }
@@ -41,7 +42,7 @@ export default function Header() {
       </a>
       <div className="header__inner">
         <a
-          href="#"
+          href="/"
           className="header__logo"
           onClick={() => setMenuOpen(false)}
         >

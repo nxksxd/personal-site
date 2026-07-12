@@ -15,12 +15,12 @@ export default function ProjectPage({ id }: { id: number }) {
     .sort((a, b) => b.date.localeCompare(a.date));
 
   if (loading) return <section className="project-page"><div className="project-page__inner">Загрузка…</div></section>;
-  if (!project) return <section className="project-page"><div className="project-page__inner"><a href="#projects">← Все проекты</a><h1>Проект не найден</h1></div></section>;
+  if (!project) return <section className="project-page"><div className="project-page__inner"><a href="/projects">← Все проекты</a><h1>Проект не найден</h1></div></section>;
 
   return (
     <section className="project-page">
       <article className="project-page__inner">
-        <a href="#projects" className="project-page__back">← Все проекты</a>
+        <a href="/projects" className="project-page__back">← Все проекты</a>
         <ProjectMedia title={project.title} image={project.image} />
         <div className="project-page__body">
           <div className="project-page__tags">{project.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>

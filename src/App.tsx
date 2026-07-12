@@ -14,110 +14,61 @@ import Terms from "./components/Terms";
 import AdminPanel from "./components/admin/AdminPanel";
 import AdminLogin from "./components/admin/AdminLogin";
 
-function useHashRoute() {
-  const [hash, setHash] = useState(window.location.hash);
+const LEGACY_ROUTES: Record<string, string> = {
+  "#projects": "/projects",
+  "#news": "/news",
+  "#admin": "/admin",
+  "#terms": "/terms",
+};
+
+function usePathRoute() {
+  const [path, setPath] = useState(window.location.pathname);
 
   useEffect(() => {
-    const onHashChange = () => {
-      setHash(window.location.hash);
+    const legacyProject = window.location.hash.match(/^#project\/(\d+)$/);
+    const legacyPath = legacyProject ? `/projects/${legacyProject[1]}` : LEGACY_ROUTES[window.location.hash];
+    if (legacyPath) {
+      window.history.replaceState({}, "", legacyPath);
+      setPath(legacyPath);
+    }
+
+    const onPopState = () => {
+      setPath(window.location.pathname);
       window.scrollTo(0, 0);
     };
-    window.addEventListener("hashchange", onHashChange);
-    return () => window.removeEventListener("hashchange", onHashChange);
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
-  return hash;
+  return path.replace(/\/+$/, "") || "/";
 }
 
-function Home() {
-  return (
-    <>
-      <Header />
-      <main id="main">
-        <Hero />
-        <HomeSection />
-      </main>
-      <Footer />
-    </>
-  );
-}
-
-function ProjectsPage() {
-  return (
-    <>
-      <Header />
-      <main id="main">
-        <AllProjects />
-      </main>
-      <Footer />
-    </>
-  );
-}
-
-function NewsPage() {
-  return (
-    <>
-      <Header />
-      <main id="main">
-        <AllNews />
-      </main>
-      <Footer />
-    </>
-  );
-}
-
-function TermsPage() {
-  return (
-    <>
-      <Header />
-      <main id="main">
-        <Terms />
-      </main>
-      <Footer />
-    </>
-  );
-}
-
-function ProjectDetailPage({ id }: { id: number }) {
-  return <><Header /><main id="main"><ProjectPage id={id} /></main><Footer /></>;
-}
+function Home() { return <><Header /><main id="main"><Hero /><HomeSection /></main><Footer /></>; }
+function ProjectsPage() { return <><Header /><main id="main"><AllProjects /></main><Footer /></>; }
+function NewsPage() { return <><Header /><main id="main"><AllNews /></main><Footer /></>; }
+function TermsPage() { return <><Header /><main id="main"><Terms /></main><Footer /></>; }
+function ProjectDetailPage({ id }: { id: number }) { return <><Header /><main id="main"><ProjectPage id={id} /></main><Footer /></>; }
 
 function AdminGate({ onBack }: { onBack: () => void }) {
   const { isAuthenticated } = useAuth();
-
-  if (!isAuthenticated) {
-    return <AdminLogin onBack={onBack} />;
-  }
-
-  return <AdminPanel onBack={onBack} />;
+  return isAuthenticated ? <AdminPanel onBack={onBack} /> : <AdminLogin onBack={onBack} />;
 }
 
 export default function App() {
-  const hash = useHashRoute();
-  const goHome = () => (window.location.hash = "");
+  const path = usePathRoute();
+  const goHome = () => window.location.assign("/");
+  const projectMatch = path.match(/^\/projects\/(\d+)$/);
 
   const renderPage = () => {
-    const projectMatch = hash.match(/^#project\/(\d+)$/);
     if (projectMatch) return <ProjectDetailPage id={Number(projectMatch[1])} />;
-    switch (hash) {
-      case "#admin":
-        return <AdminGate onBack={goHome} />;
-      case "#projects":
-        return <ProjectsPage />;
-      case "#news":
-        return <NewsPage />;
-      case "#terms":
-        return <TermsPage />;
-      default:
-        return <Home />;
+    switch (path) {
+      case "/admin": return <AdminGate onBack={goHome} />;
+      case "/projects": return <ProjectsPage />;
+      case "/news": return <NewsPage />;
+      case "/terms": return <TermsPage />;
+      default: return <Home />;
     }
   };
 
-  return (
-    <ThemeProvider>
-      <DataProvider>
-        <AuthProvider>{renderPage()}</AuthProvider>
-      </DataProvider>
-    </ThemeProvider>
-  );
+  return <ThemeProvider><DataProvider><AuthProvider>{renderPage()}</AuthProvider></DataProvider></ThemeProvider>;
 }

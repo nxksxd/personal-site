@@ -4,7 +4,7 @@ export default function Terms() {
   return (
     <section className="terms">
       <div className="terms__inner">
-        <a href="#" className="terms__back">&larr; На главную</a>
+        <a href="/" className="terms__back">&larr; На главную</a>
         <h1 className="terms__title">Условия использования</h1>
         <p className="terms__updated">Последнее обновление: 30 июня 2026 г.</p>
 

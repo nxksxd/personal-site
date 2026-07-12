@@ -36,7 +36,7 @@ export default function Footer() {
 
         <div className="footer__bottom">
           <span>&copy; 2024–{new Date().getFullYear()} Nikita Syromyatnikov. Все права защищены.</span>
-          <a href="#terms" className="footer__terms-link">Условия использования</a>
+          <a href="/terms" className="footer__terms-link">Условия использования</a>
         </div>
       </div>
     </footer>

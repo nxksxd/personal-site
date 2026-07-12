@@ -13,7 +13,7 @@ export default function AllProjects() {
 
   return (
     <section className="all-projects"><div className="all-projects__inner">
-      <a href="#" className="all-projects__back">&larr; На главную</a>
+      <a href="/" className="all-projects__back">&larr; На главную</a>
       <h1 className="all-projects__title">Все проекты</h1>
       <p className="all-projects__subtitle">Вот всё, над чем я работаю и работал</p>
       <div className="all-projects__grid">
