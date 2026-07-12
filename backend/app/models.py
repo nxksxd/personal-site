@@ -57,6 +57,7 @@ class Project(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     description = Column(Text, nullable=False)
+    detail_content = Column(Text, nullable=False, default="")
     tags = Column(JSON, nullable=False, default=list)
     link = Column(String, nullable=False, default="#")
     github = Column(String, nullable=True)

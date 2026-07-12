@@ -91,6 +91,7 @@ class PostOut(PostBase):
 class ProjectBase(BaseModel):
     title: str = Field(min_length=1)
     description: str = Field(min_length=1)
+    detail_content: str = ""
     tags: list[str] = Field(default_factory=list)
     link: str = "#"
     github: Optional[str] = None

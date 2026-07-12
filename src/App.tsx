@@ -8,6 +8,7 @@ import Hero from "./components/Hero";
 import HomeSection from "./components/HomeSection";
 import AllProjects from "./components/AllProjects";
 import AllNews from "./components/AllNews";
+import ProjectPage from "./components/ProjectPage";
 import Footer from "./components/Footer";
 import Terms from "./components/Terms";
 import AdminPanel from "./components/admin/AdminPanel";
@@ -77,6 +78,10 @@ function TermsPage() {
   );
 }
 
+function ProjectDetailPage({ id }: { id: number }) {
+  return <><Header /><main id="main"><ProjectPage id={id} /></main><Footer /></>;
+}
+
 function AdminGate({ onBack }: { onBack: () => void }) {
   const { isAuthenticated } = useAuth();
 
@@ -92,6 +97,8 @@ export default function App() {
   const goHome = () => (window.location.hash = "");
 
   const renderPage = () => {
+    const projectMatch = hash.match(/^#project\/(\d+)$/);
+    if (projectMatch) return <ProjectDetailPage id={Number(projectMatch[1])} />;
     switch (hash) {
       case "#admin":
         return <AdminGate onBack={goHome} />;

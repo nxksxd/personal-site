@@ -6,6 +6,7 @@ export interface Project {
   id: number;
   title: string;
   description: string;
+  detail_content: string;
   tags: string[];
   link: string;
   github?: string;

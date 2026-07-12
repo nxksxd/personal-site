@@ -7,6 +7,7 @@ import type { SocialLink } from "../../lib/socialIcons";
 interface ProjectForm {
   title: string;
   description: string;
+  detail_content: string;
   tags: string;
   link: string;
   github: string;
@@ -17,6 +18,7 @@ interface ProjectForm {
 const emptyForm: ProjectForm = {
   title: "",
   description: "",
+  detail_content: "",
   tags: "",
   link: "",
   github: "",
@@ -28,6 +30,7 @@ function projectToForm(p: Project): ProjectForm {
   return {
     title: p.title,
     description: p.description,
+    detail_content: p.detail_content ?? "",
     tags: p.tags.join(", "),
     link: p.link,
     github: p.github ?? "",
@@ -49,6 +52,7 @@ function formToProject(
     ...(id !== undefined && { id }),
     title: form.title,
     description: form.description,
+    detail_content: form.detail_content,
     tags,
     link: form.link || "#",
     github: form.github || undefined,
@@ -147,6 +151,16 @@ export default function ProjectsEditor() {
           onChange={(e) => updateField("description", e.target.value)}
           placeholder="Краткое описание проекта"
           rows={3}
+        />
+      </div>
+      <div className="admin__field">
+        <label className="admin__label">Содержимое отдельной страницы</label>
+        <textarea
+          className="admin__textarea"
+          value={form.detail_content}
+          onChange={(e) => updateField("detail_content", e.target.value)}
+          placeholder="Подробное описание, этапы и результаты"
+          rows={10}
         />
       </div>
       <div className="admin__field">

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session
 
 from .auth import get_current_user
@@ -32,6 +33,9 @@ UPLOADS_DIR = os.path.join(DATA_DIR, "uploads")
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 
 Base.metadata.create_all(bind=engine)
+if engine.dialect.name == "sqlite" and "detail_content" not in {column["name"] for column in inspect(engine).get_columns("projects")}:
+    with engine.begin() as connection:
+        connection.execute(text("ALTER TABLE projects ADD COLUMN detail_content TEXT NOT NULL DEFAULT ''"))
 
 # Reconcile columns on pre-existing tables (persistent /data volume may hold an
 # older schema). Prevents "no such column" crashes on restart after a model
