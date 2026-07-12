@@ -176,6 +176,10 @@
   border-color: var(--accent);
 }
 
+.modal-detail__links--project { align-items: center; }
+.modal-detail__links--project > .links-block { display: contents; }
+.modal-detail__links--project .links-block__link { margin: 0; }
+
 .modal-detail__comment {
   margin-top: 20px;
   padding: 16px 18px;

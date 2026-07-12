@@ -43,32 +43,25 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
           {project.title}
         </h2>
         <p className="modal-detail__text">{project.description}</p>
-        <div className="modal-detail__links">
+        <div className="modal-detail__links modal-detail__links--project">
           <a href={`#project/${project.id}`} className="modal-detail__link" onClick={onClose}>Подробнее</a>
-        </div>
-        {(project.github || project.link !== "#") && (
-          <div className="modal-detail__links">
+          {project.github && (
             <a
-              href={project.github ?? project.link}
+              href={project.github}
               target="_blank"
               rel="noopener noreferrer"
               className="modal-detail__link"
             >
-              {project.github ? (
-                <>
-                  <GitHubIcon size={18} />
-                  GitHub
-                </>
-              ) : (
-                <>
-                  <ExternalLinkIcon size={16} />
-                  Открыть
-                </>
-              )}
+              <GitHubIcon size={18} /> GitHub
             </a>
-          </div>
-        )}
-        <LinksBlock links={project.links} />
+          )}
+          {project.link !== "#" && (
+            <a href={project.link} target="_blank" rel="noopener noreferrer" className="modal-detail__link">
+              <ExternalLinkIcon size={16} /> Открыть
+            </a>
+          )}
+          <LinksBlock links={project.links} />
+        </div>
       </div>
     </Modal>
   );
