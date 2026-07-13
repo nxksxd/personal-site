@@ -10,6 +10,12 @@ class Credentials(BaseModel):
     password: str = Field(min_length=4)
 
 
+class PasswordChange(BaseModel):
+    current_password: str = Field(min_length=1)
+    new_password: str = Field(min_length=12)
+    confirm_password: str = Field(min_length=12)
+
+
 class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

@@ -14,6 +14,7 @@ export interface AuthContextType {
   login: (username: string, password: string) => Promise<boolean>;
   setupFirstUser: (username: string, password: string) => Promise<void>;
   addUser: (username: string, password: string) => Promise<boolean>;
+  changeUserPassword: (id: number, currentPassword: string, newPassword: string, confirmPassword: string) => Promise<void>;
   deleteUser: (id: number) => Promise<void>;
   logout: () => void;
 }

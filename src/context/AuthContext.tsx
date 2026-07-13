@@ -130,6 +130,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [refreshUsers]
   );
 
+  const changeUserPassword = useCallback(
+    async (id: number, currentPassword: string, newPassword: string, confirmPassword: string) => {
+      await api.put(
+        `/api/auth/users/${id}/password`,
+        {
+          current_password: currentPassword,
+          new_password: newPassword,
+          confirm_password: confirmPassword,
+        },
+        true
+      );
+    },
+    []
+  );
+
   const deleteUser = useCallback(
     async (id: number) => {
       await api.del(`/api/auth/users/${id}`, true);
@@ -157,6 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         setupFirstUser,
         addUser,
+        changeUserPassword,
         deleteUser,
         logout,
       }}
