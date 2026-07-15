@@ -2,31 +2,29 @@
 
 Личный сайт-визитка с проектами, новостями и защищённой админ-панелью.
 
-## Быстрый деплой на новый VPS
+## Установка на новый VPS одной командой
 
-Требования: Ubuntu/Debian, Docker Engine и Docker Compose plugin.
+Поддерживаются Ubuntu и Debian. Команда сама установит Docker, скачает текущую версию ветки `main`, соберёт сайт, запустит контейнер и проверит `/health`:
 
 ```bash
-sudo apt update && sudo apt install -y git docker.io docker-compose-plugin python3
-sudo systemctl enable --now docker
-sudo mkdir -p /opt/personal-site
-sudo git clone https://github.com/nxksxd/personal-site.git /opt/personal-site
-cd /opt/personal-site
-sudo bash install.sh
+curl -fsSL https://raw.githubusercontent.com/nxksxd/personal-site/main/install.sh | sudo bash
 ```
 
-После установки сайт доступен на `http://IP-СЕРВЕРА:8000`.
+После установки команда напечатает адрес сайта и установленный commit. Повторный запуск обновляет код строго до актуального `origin/main`, пересобирает контейнер и сохраняет данные.
 
-Скрипт установки:
+Скрипт:
 
-- клонирует или обновляет репозиторий;
-- создаёт `.env` из `.env.example`;
-- генерирует секрет для JWT;
-- собирает актуальную версию frontend и backend;
+- устанавливает Git, Docker Engine и Docker Compose;
+- клонирует репозиторий в `/opt/personal-site`;
+- создаёт `.env` и случайный `JWT_SECRET`;
+- собирает текущие frontend и backend из `main`;
 - запускает контейнер с автоматическим перезапуском;
-- сохраняет базу SQLite и загруженные файлы в Docker volume `personal-site-data`.
+- сохраняет SQLite и загрузки в Docker volume `personal-site-data`;
+- завершает работу с ошибкой, если сайт не прошёл health check.
 
-Перед публикацией через домен настройте reverse proxy (например, Nginx) на `127.0.0.1:8000`.
+Перед публикацией через домен настройте reverse proxy на `127.0.0.1:8000`.
+
+Важно: эта команда переносит актуальный код сайта. Содержимое текущей базы — проекты, новости, пользователи и загруженные изображения — хранится отдельно от GitHub. Для полного переноса существующих данных нужен экспорт volume со старого VPS и импорт на новый.
 
 ## Обновление существующего VPS
 
