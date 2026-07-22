@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { useData } from "../context/data-context";
-import { CommentIcon } from "./Icons";
 import PostModal from "./PostModal";
 import ProjectModal from "./ProjectModal";
 import type { Post } from "../data/posts";
@@ -23,6 +22,16 @@ const TYPE_META: Record<string, { icon: string }> = {
   "Анонс": { icon: "📢" },
   "Заметка": { icon: "📝" },
 };
+
+function excerpt(markdown: string): string {
+  return markdown
+    .replace(/^#{1,6}\s+.*$/gm, "")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[*_~`>#]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 export default function HomeSection() {
   const { projects, posts } = useData();
@@ -95,9 +104,7 @@ export default function HomeSection() {
                     ) : null}
                   </div>
                   <p className="project-card__desc">
-                    {project.description.length > 120
-                      ? project.description.slice(0, 120) + "…"
-                      : project.description}
+                    {project.description}
                   </p>
                   {project.tags && project.tags.length > 0 && (
                     <div className="project-card__tags">
@@ -108,6 +115,7 @@ export default function HomeSection() {
                       ))}
                     </div>
                   )}
+                  <span className="project-card__action">Подробнее <span aria-hidden="true">→</span></span>
                 </div>
               </article>
             ))}
@@ -157,14 +165,9 @@ export default function HomeSection() {
                   )}
                   <div className="news-card__body">
                     <div className="news-card__meta">
-                      {post.project && (
-                        <span className="news-card__project">
-                          {post.project.title}
-                        </span>
-                      )}
-                      {type && (
+                      {(post.category || type || post.project) && (
                         <span className="news-card__type">
-                          {typeMeta?.icon} {type}
+                          {post.category?.name ?? (type ? `${typeMeta?.icon ?? ""} ${type}`.trim() : post.project?.title)}
                         </span>
                       )}
                       <time className="news-card__date">
@@ -174,21 +177,10 @@ export default function HomeSection() {
 
                     <h3 className="news-card__title">{post.title}</h3>
                     <p className="news-card__content">
-                      {post.content.length > 140
-                        ? post.content.slice(0, 140) + "…"
-                        : post.content}
+                      {excerpt(post.content)}
                     </p>
 
-                    {post.comment && (
-                      <div className="news-card__comment">
-                        <CommentIcon />
-                        <span>
-                          {post.comment.length > 90
-                            ? post.comment.slice(0, 90) + "…"
-                            : post.comment}
-                        </span>
-                      </div>
-                    )}
+                    <span className="news-card__action">Читать <span aria-hidden="true">→</span></span>
                   </div>
                 </article>
               );

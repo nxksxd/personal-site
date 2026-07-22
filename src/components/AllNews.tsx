@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { useData } from "../context/data-context";
-import { CommentIcon } from "./Icons";
-import MarkdownContent from "./MarkdownContent";
 import PostModal from "./PostModal";
 import type { Post } from "../data/posts";
 import "./AllNews.css";
@@ -13,6 +11,16 @@ function formatDate(dateStr: string): string {
     month: "long",
     year: "numeric",
   });
+}
+
+function excerpt(markdown: string): string {
+  return markdown
+    .replace(/^#{1,6}\s+.*$/gm, "")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[*_~`>#]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export default function AllNews() {
@@ -94,9 +102,6 @@ export default function AllNews() {
               )}
               <div className="all-news__card-body">
                 <div className="all-news__card-meta">
-                  <time className="all-news__card-date">
-                    {formatDate(post.date)}
-                  </time>
                   {post.category && (
                     <span
                       className="all-news__card-category"
@@ -108,29 +113,11 @@ export default function AllNews() {
                       {post.category.name}
                     </span>
                   )}
-                  {post.tags && (
-                    <div className="all-news__card-tags">
-                      {post.tags.map((tag) => (
-                        <span key={tag} className="all-news__card-tag">
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  <time className="all-news__card-date">{formatDate(post.date)}</time>
                 </div>
                 <h3 className="all-news__card-title">{post.title}</h3>
-                <div className="all-news__card-content">
-                  <MarkdownContent content={post.content} preview />
-                </div>
-                {post.comment && (
-                  <div className="all-news__card-comment">
-                    <div className="all-news__card-comment-header">
-                      <CommentIcon />
-                      <span>Комментарий автора</span>
-                    </div>
-                    <p className="all-news__card-comment-text">{post.comment}</p>
-                  </div>
-                )}
+                <p className="all-news__card-content">{excerpt(post.content)}</p>
+                <span className="all-news__card-action">Читать <span aria-hidden="true">→</span></span>
               </div>
             </article>
           ))}

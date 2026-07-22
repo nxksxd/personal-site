@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTheme } from "../context/theme-context";
 import { SunIcon, MoonIcon, MenuIcon, CloseIcon } from "./Icons";
 import { useVisitorCountry, countryCodeToFlag } from "../hooks/useVisitorCountry";
@@ -16,6 +16,13 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { code: countryCode, name: countryName } = useVisitorCountry();
   const flag = countryCodeToFlag(countryCode);
+  const [currentHash, setCurrentHash] = useState(window.location.hash);
+
+  useEffect(() => {
+    const updateHash = () => setCurrentHash(window.location.hash);
+    window.addEventListener("hashchange", updateHash);
+    return () => window.removeEventListener("hashchange", updateHash);
+  }, []);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     setMenuOpen(false);
@@ -37,9 +44,6 @@ export default function Header() {
 
   return (
     <header className="header">
-      <a href="#main" className="header__skip-link">
-        К основному содержимому
-      </a>
       <div className="header__inner">
         <a
           href="/"
@@ -69,6 +73,7 @@ export default function Header() {
               href={item.href}
               className="header__link"
               onClick={(e) => handleNavClick(e, item.href)}
+              aria-current={currentHash === item.href ? "page" : undefined}
             >
               {item.label}
             </a>

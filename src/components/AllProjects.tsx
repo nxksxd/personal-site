@@ -31,6 +31,7 @@ export default function AllProjects() {
               </div>
               <p className="all-projects-card__desc">{p.description}</p>
               <div className="all-projects-card__tags">{p.tags.map((tag) => <span key={tag} className="all-projects-card__tag">{tag}</span>)}</div>
+              <span className="project-card__action">Подробнее <span aria-hidden="true">→</span></span>
             </div>
           </article>
         ))}

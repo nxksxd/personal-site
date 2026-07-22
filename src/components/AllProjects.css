@@ -37,8 +37,9 @@
 
 .all-projects__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
 }
 
 .all-projects__empty {
@@ -64,6 +65,8 @@
     grid-template-columns: 1fr;
     gap: 16px;
   }
+
+  .all-projects .project-card:hover { transform: none; }
 }
 
 /* Dedicated classes prevent homepage project-card styles from leaking here. */
