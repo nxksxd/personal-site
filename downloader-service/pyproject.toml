@@ -1,0 +1,19 @@
+[project]
+name = "downloader-service"
+version = "1.0.0"
+description = "Public video downloader API for nxksxd.xyz/download"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "yt-dlp>=2024.0.0",
+    "pydantic>=2.7.0",
+    "aiofiles>=23.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["app"]

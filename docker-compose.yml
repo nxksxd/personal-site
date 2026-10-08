@@ -13,9 +13,29 @@ services:
     mem_limit: 1g
     pids_limit: 256
 
+  downloader-service:
+    build: ./downloader-service
+    container_name: downloader-service
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8090:8090"
+    environment:
+      - DOWNLOAD_DIR=/tmp/web-downloads
+    volumes:
+      - downloads-tmp:/tmp/web-downloads
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          memory: 512M
+
 volumes:
   site-data:
     name: personal-site-data
+  downloads-tmp:
+    name: downloads-tmp
 
 # Update: git pull --ff-only && docker compose up -d --build
 # The named volume preserves the database and uploads.
