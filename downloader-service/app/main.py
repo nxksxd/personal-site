@@ -267,19 +267,33 @@ def _download_video(url: str, job_id: str, quality: str, file_format: str) -> Pa
     # Keep the requested extension after post-processing/merging.
     opts["outtmpl"] = str(job_dir / f"%(title)s.%(ext)s")
 
-    with yt_dlp.YoutubeDL(opts) as ydl:
-        info = ydl.extract_info(url, download=True)
-        # Find the downloaded file
-        if "requested_downloads" in info:
-            for rd in info["requested_downloads"]:
-                fp = Path(rd.get("filepath", ""))
-                if fp.exists():
-                    return fp
+    try:
+        with yt_dlp.YoutubeDL(opts) as ydl:
+            info = ydl.extract_info(url, download=True)
+    except yt_dlp.utils.DownloadError as first_error:
+        # YouTube may reject a signed adaptive 1080p URL (403). Retry once with
+        # a single progressive stream; it is slower but much more compatible.
+        if file_format != "mp3":
+            logger.warning("Adaptive stream rejected; retrying progressive format: %s", first_error)
+            fallback = dict(opts)
+            fallback["format"] = f"best[height<={height}]/best"
+            fallback["merge_output_format"] = None
+            with yt_dlp.YoutubeDL(fallback) as ydl:
+                info = ydl.extract_info(url, download=True)
+        else:
+            raise
 
-        # Fallback: find any file in job dir
-        for f in job_dir.iterdir():
-            if f.is_file():
-                return f
+    # Find the downloaded file
+    if "requested_downloads" in info:
+        for rd in info["requested_downloads"]:
+            fp = Path(rd.get("filepath", ""))
+            if fp.exists():
+                return fp
+
+    # Fallback: find any file in job dir
+    for f in job_dir.iterdir():
+        if f.is_file():
+            return f
 
     raise RuntimeError("Download completed but no file found")
 
