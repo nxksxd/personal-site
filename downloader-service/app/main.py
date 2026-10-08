@@ -157,6 +157,7 @@ class Job:
     filename: str | None = None
     error: str | None = None
     file_path: Path | None = None
+    file_size: int | None = None
     created_at: float = field(default_factory=time.time)
 
 
