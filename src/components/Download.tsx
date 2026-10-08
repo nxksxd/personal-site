@@ -239,7 +239,7 @@ export default function Download() {
                         {jobStatus.filename} ({formatSize(jobStatus.file_size)})
                       </p>
                       <a
-                        href={`${API_BASE}/file/${jobId}`}
+                        href={`https://dl.nxksxd.xyz:9443/file/${jobId}`}
                         className="download__btn download__btn--success"
                         download
                       >
