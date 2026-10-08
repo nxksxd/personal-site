@@ -19,6 +19,33 @@ import yt_dlp
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+import urllib.request
+import secrets
+
+_thumbnail_cache: dict[str, tuple[bytes, str, float]] = {}
+
+def cache_youtube_thumbnail(info):
+    video_id = str(info.get('id', ''))
+    if info.get('extractor_key') != 'Youtube' or not re.fullmatch(r'[A-Za-z0-9_-]{11}', video_id):
+        return info.get('thumbnail')
+    try:
+        # Fixed origin and validated video ID; no arbitrary URL proxy.
+        req = urllib.request.Request(f'https://i.ytimg.com/vi/{video_id}/hqdefault.jpg')
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.geturl() != req.full_url:
+                return None
+            data = response.read(2 * 1024 * 1024 + 1)
+        if len(data) > 2 * 1024 * 1024:
+            return None
+        token = secrets.token_hex(16)
+        _thumbnail_cache[token] = (data, 'image/jpeg', time.time())
+        for key, entry in list(_thumbnail_cache.items()):
+            if time.time() - entry[2] > 1800:
+                _thumbnail_cache.pop(key, None)
+        return '/download-api/thumbnail/' + token
+    except Exception:
+        return None
+
 from pydantic import BaseModel
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
@@ -212,7 +239,7 @@ def _cleanup_expired():
 # ---------------------------------------------------------------------------
 # yt-dlp helpers
 # ---------------------------------------------------------------------------
-def _get_ydl_opts(url: str, download: bool = False, outtmpl: str | None = None, fmt: str | None = None) -> dict:
+def _get_ydl_opts(url: str, download: bool = False, outtmpl: str | None = None, fmt: str | None = None, progress_hook=None) -> dict:
     import random
     opts: dict[str, Any] = {
         "quiet": True,
@@ -254,7 +281,18 @@ def _download_video(url: str, job_id: str, quality: str, file_format: str) -> Pa
         fmt = f"bestvideo[height<={height}]+bestaudio/best[height<={height}]"
 
     outtmpl = str(job_dir / "%(title)s.%(ext)s")
+    def progress_hook(data):
+        job = _jobs.get(job_id)
+        if not job:
+            return
+        total = data.get('total_bytes') or data.get('total_bytes_estimate')
+        if total and data.get('status') == 'downloading':
+            job.progress = min(95.0, 95.0 * data.get('downloaded_bytes', 0) / total)
+        elif data.get('status') == 'finished':
+            job.progress = 95.0
+
     opts = _get_ydl_opts(url, download=True, outtmpl=outtmpl, fmt=fmt)
+    opts['progress_hooks'] = [progress_hook]
     opts["merge_output_format"] = "mp4" if file_format == "mp4" else "webm"
 
     if file_format == "mp3":
@@ -356,7 +394,7 @@ async def analyze(req: AnalyzeRequest):
     return AnalyzeResponse(
         title=info.get("title", "Unknown"),
         duration=info.get("duration"),
-        thumbnail=info.get("thumbnail"),
+        thumbnail=cache_youtube_thumbnail(info),
         uploader=info.get("uploader"),
         formats=formats[:50],
         qualities=[AvailableQuality(value=f"{h}p", label=f"{h}p") for h in sorted({int(f["height"]) for f in info.get("formats", []) if f.get("height") and f.get("vcodec") != "none"}) if f"{h}p" in ALLOWED_QUALITIES],
@@ -450,6 +488,15 @@ async def get_file(job_id: str):
         filename=job.filename,
         media_type=media_type,
     )
+
+
+@app.get("/thumbnail/{token}")
+async def get_thumbnail(token: str):
+    entry = _thumbnail_cache.get(token)
+    if not entry or time.time() - entry[2] > 1800:
+        raise HTTPException(status_code=404, detail="Thumbnail expired")
+    from fastapi.responses import Response
+    return Response(content=entry[0], media_type=entry[1], headers={"Cache-Control": "public, max-age=1800"})
 
 
 @app.get("/health")
