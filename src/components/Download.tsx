@@ -14,6 +14,7 @@ interface VideoInfo {
   thumbnail: string | null;
   uploader: string | null;
   formats: FormatInfo[];
+  qualities: { value: string; label: string; available: boolean }[];
   url: string;
 }
 
@@ -29,10 +30,15 @@ interface JobStatus {
 const API_BASE = "/download-api";
 
 const QUALITY_OPTIONS = [
-  { value: "audio", label: "Аудио (MP3)" },
   { value: "360p", label: "360p" },
   { value: "480p", label: "480p" },
   { value: "720p", label: "720p" },
+  { value: "1080p", label: "1080p" },
+];
+const FORMAT_OPTIONS = [
+  { value: "mp4", label: "MP4 (совместимый)" },
+  { value: "webm", label: "WebM" },
+  { value: "mp3", label: "MP3 (аудио)" },
 ];
 
 function formatDuration(seconds: number | null): string {
@@ -54,6 +60,7 @@ export default function Download() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<VideoInfo | null>(null);
   const [quality, setQuality] = useState("720p");
+  const [fileFormat, setFileFormat] = useState("mp4");
   const [jobId, setJobId] = useState<string | null>(null);
   const [jobStatus, setJobStatus] = useState<JobStatus | null>(null);
   const [downloading, setDownloading] = useState(false);
@@ -96,7 +103,7 @@ export default function Download() {
       const res = await fetch(`${API_BASE}/download`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: info.url, quality }),
+        body: JSON.stringify({ url: info.url, quality, file_format: fileFormat }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -199,16 +206,14 @@ export default function Download() {
 
               {!jobId && (
                 <div className="download__controls">
-                  <select
-                    className="download__select"
-                    value={quality}
-                    onChange={(e) => setQuality(e.target.value)}
-                    disabled={downloading}
-                  >
-                    {QUALITY_OPTIONS.map((q) => (
-                      <option key={q.value} value={q.value}>{q.label}</option>
-                    ))}
-                  </select>
+                  <div className="download__selects">
+                    <select className="download__select" value={quality} onChange={(e) => setQuality(e.target.value)} disabled={downloading}>
+                      {QUALITY_OPTIONS.filter((q) => info.qualities?.some((a) => a.value === q.value)).map((q) => <option key={q.value} value={q.value}>{q.label}</option>)}
+                    </select>
+                    <select className="download__select" value={fileFormat} onChange={(e) => setFileFormat(e.target.value)} disabled={downloading}>
+                      {FORMAT_OPTIONS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+                    </select>
+                  </div>
                   <button
                     className="download__btn download__btn--primary"
                     onClick={handleDownload}

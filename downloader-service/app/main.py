@@ -34,7 +34,14 @@ FILE_TTL_SECONDS = 30 * 60  # 30 min
 EXTRACT_TIMEOUT = 60
 DOWNLOAD_TIMEOUT = 600  # 10 min per job
 MAX_FILE_SIZE_MB = 2000
-ALLOWED_QUALITIES = {"audio", "360p", "480p", "720p"}
+ALLOWED_QUALITIES = {"360p", "480p", "720p", "1080p"}
+ALLOWED_FORMATS = {"mp4", "webm", "mp3"}
+
+QUALITY_HEIGHTS = {"360p": 360, "480p": 480, "720p": 720, "1080p": 1080}
+
+# Audio-only remains a format choice rather than a video quality.
+DEFAULT_QUALITY = "720p"
+DEFAULT_FORMAT = "mp4"
 
 ALLOWED_DOMAINS = {
     "youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be",
@@ -109,7 +116,24 @@ class AnalyzeRequest(BaseModel):
 
 class DownloadRequest(BaseModel):
     url: str
-    quality: str = "720p"
+    quality: str = DEFAULT_QUALITY
+    file_format: str = DEFAULT_FORMAT
+
+
+class AvailableQuality(BaseModel):
+    value: str
+    label: str
+    available: bool = True
+
+
+class AnalyzeResponse(BaseModel):
+    title: str
+    duration: int | None = None
+    thumbnail: str | None = None
+    uploader: str | None = None
+    formats: list[FormatInfo] = []
+    qualities: list[AvailableQuality] = []
+    url: str
 
 
 class FormatInfo(BaseModel):
@@ -119,15 +143,6 @@ class FormatInfo(BaseModel):
     filesize: int | None = None
     vcodec: str | None = None
     acodec: str | None = None
-
-
-class AnalyzeResponse(BaseModel):
-    title: str
-    duration: int | None = None
-    thumbnail: str | None = None
-    uploader: str | None = None
-    formats: list[FormatInfo] = []
-    url: str
 
 
 class DownloadResponse(BaseModel):
@@ -152,6 +167,7 @@ class Job:
     job_id: str
     url: str
     quality: str
+    file_format: str = DEFAULT_FORMAT
     status: str = "queued"
     progress: float = 0.0
     filename: str | None = None
@@ -224,30 +240,32 @@ def _extract_info(url: str) -> dict:
         return ydl.extract_info(url, download=False)
 
 
-def _download_video(url: str, job_id: str, quality: str) -> Path:
+def _download_video(url: str, job_id: str, quality: str, file_format: str) -> Path:
     job_dir = _job_dir(job_id)
     job_dir.mkdir(parents=True, exist_ok=True)
 
-    # Map quality to yt-dlp format selector
-    fmt_map = {
-        "audio": "bestaudio/best",
-        "360p": "bestvideo[height<=360]+bestaudio/best[height<=360]",
-        "480p": "bestvideo[height<=480]+bestaudio/best[height<=480]",
-        "720p": "bestvideo[height<=720]+bestaudio/best[height<=720]",
-    }
-    fmt = fmt_map.get(quality, "bestvideo[height<=720]+bestaudio/best")
+    height = QUALITY_HEIGHTS.get(quality, QUALITY_HEIGHTS[DEFAULT_QUALITY])
+    if file_format == "mp3":
+        fmt = "bestaudio/best"
+    elif file_format == "mp4":
+        # Prefer H.264/AAC for widest device compatibility, with a fallback.
+        fmt = f"bestvideo[height<={height}][vcodec^=avc1]+bestaudio[acodec^=mp4a]/best[height<={height}]"
+    else:
+        fmt = f"bestvideo[height<={height}]+bestaudio/best[height<={height}]"
 
     outtmpl = str(job_dir / "%(title)s.%(ext)s")
-
     opts = _get_ydl_opts(url, download=True, outtmpl=outtmpl, fmt=fmt)
+    opts["merge_output_format"] = "mp4" if file_format == "mp4" else "webm"
 
-    # For audio, extract mp3
-    if quality == "audio":
+    if file_format == "mp3":
         opts["postprocessors"] = [{
             "key": "FFmpegExtractAudio",
             "preferredcodec": "mp3",
             "preferredquality": "192",
         }]
+
+    # Keep the requested extension after post-processing/merging.
+    opts["outtmpl"] = str(job_dir / f"%(title)s.%(ext)s")
 
     with yt_dlp.YoutubeDL(opts) as ydl:
         info = ydl.extract_info(url, download=True)
@@ -326,7 +344,8 @@ async def analyze(req: AnalyzeRequest):
         duration=info.get("duration"),
         thumbnail=info.get("thumbnail"),
         uploader=info.get("uploader"),
-        formats=formats[:20],  # limit
+        formats=formats[:50],
+        qualities=[AvailableQuality(value=f"{h}p", label=f"{h}p") for h in sorted({int(f["height"]) for f in info.get("formats", []) if f.get("height") and f.get("vcodec") != "none"}) if f"{h}p" in ALLOWED_QUALITIES],
         url=url,
     )
 
@@ -335,11 +354,16 @@ async def analyze(req: AnalyzeRequest):
 async def start_download(req: DownloadRequest):
     url = validate_url(req.url)
     quality = req.quality.lower()
+    file_format = req.file_format.lower()
+    if quality == "audio":
+        quality, file_format = DEFAULT_QUALITY, "mp3"
     if quality not in ALLOWED_QUALITIES:
         raise HTTPException(status_code=400, detail=f"Invalid quality. Allowed: {ALLOWED_QUALITIES}")
+    if file_format not in ALLOWED_FORMATS:
+        raise HTTPException(status_code=400, detail=f"Invalid format. Allowed: {ALLOWED_FORMATS}")
 
     job_id = uuid.uuid4().hex[:16]
-    job = Job(job_id=job_id, url=url, quality=quality)
+    job = Job(job_id=job_id, url=url, quality=quality, file_format=file_format)
     _jobs[job_id] = job
 
     asyncio.create_task(_run_download(job))
@@ -353,7 +377,7 @@ async def _run_download(job: Job):
 
     try:
         file_path = await asyncio.wait_for(
-            loop.run_in_executor(None, lambda: _download_video(job.url, job.job_id, job.quality)),
+            loop.run_in_executor(None, lambda: _download_video(job.url, job.job_id, job.quality, job.file_format)),
             timeout=DOWNLOAD_TIMEOUT,
         )
         job.status = "done"
