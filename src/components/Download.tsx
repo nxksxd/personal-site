@@ -264,7 +264,7 @@ export default function Download() {
           )}
 
           <div className="download__info">
-            <p>Файлы хранятся на сервере 30 минут, затем автоматически удаляются.</p>
+            <p>Файлы хранятся на сервере 5 минут, затем автоматически удаляются.</p>
             <p>Поддерживаемые платформы: YouTube, Rutube, VK, Instagram, TikTok.</p>
           </div>
         </div>

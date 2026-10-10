@@ -57,7 +57,7 @@ logger = logging.getLogger("downloader")
 DOWNLOAD_DIR = Path(os.getenv("DOWNLOAD_DIR", "/tmp/web-downloads"))
 DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-FILE_TTL_SECONDS = 30 * 60  # 30 min
+FILE_TTL_SECONDS = 5 * 60  # 5 min
 EXTRACT_TIMEOUT = 60
 DOWNLOAD_TIMEOUT = 600  # 10 min per job
 MAX_FILE_SIZE_MB = 2000
