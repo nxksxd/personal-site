@@ -7,6 +7,7 @@ import "./Header.css";
 const NAV_ITEMS = [
   { label: "Проекты", href: "/projects" },
   { label: "Новости", href: "/news" },
+  { label: "SnatchClip", href: "/download" },
   { label: "Обо мне", href: "/#hero" },
   { label: "Контакты", href: "/#footer" },
 ];
