@@ -14,7 +14,8 @@ interface VideoInfo {
   thumbnail: string | null;
   uploader: string | null;
   formats: FormatInfo[];
-  qualities: { value: string; label: string; available: boolean }[];
+  qualities: { value: string; label: string; available: boolean; size_bytes: number | null }[];
+  format_sizes: Record<string, Record<string, number | null>>;
   url: string;
 }
 
@@ -22,6 +23,7 @@ interface JobStatus {
   job_id: string;
   status: string;
   progress: number;
+  eta_seconds: number | null;
   filename: string | null;
   error: string | null;
   file_size: number | null;
@@ -49,7 +51,7 @@ function formatDuration(seconds: number | null): string {
 }
 
 function formatSize(bytes: number | null): string {
-  if (!bytes) return "—";
+  if (!bytes) return "размер уточняется";
   const mb = bytes / (1024 * 1024);
   return mb >= 1 ? `${mb.toFixed(1)} МБ` : `${(bytes / 1024).toFixed(0)} КБ`;
 }
@@ -64,6 +66,13 @@ export default function Download() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [jobStatus, setJobStatus] = useState<JobStatus | null>(null);
   const [downloading, setDownloading] = useState(false);
+
+  const selectedSize = info?.format_sizes?.[quality]?.[fileFormat] ?? null;
+  const formatEta = (seconds: number | null) => {
+    if (seconds == null) return "время уточняется";
+    if (seconds < 60) return `осталось около ${seconds} сек.`;
+    return `осталось около ${Math.floor(seconds / 60)} мин. ${seconds % 60} сек.`;
+  };
 
   const handleAnalyze = async () => {
     if (!url.trim()) {
@@ -207,8 +216,9 @@ export default function Download() {
               {!jobId && (
                 <div className="download__controls">
                   <div className="download__selects">
+                    <span className="download__size">≈ {formatSize(selectedSize)}</span>
                     <select className="download__select" value={quality} onChange={(e) => setQuality(e.target.value)} disabled={downloading}>
-                      {QUALITY_OPTIONS.filter((q) => info.qualities?.some((a) => a.value === q.value)).map((q) => <option key={q.value} value={q.value}>{q.label}</option>)}
+                      {QUALITY_OPTIONS.filter((q) => info.qualities?.some((a) => a.value === q.value)).map((q) => <option key={q.value} value={q.value}>{q.label} · {formatSize(info.format_sizes?.[q.value]?.[fileFormat] ?? null)}</option>)}
                     </select>
                     <select className="download__select" value={fileFormat} onChange={(e) => setFileFormat(e.target.value)} disabled={downloading}>
                       {FORMAT_OPTIONS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
@@ -233,7 +243,7 @@ export default function Download() {
                     />
                   </div>
                   <p className="download__progress-text">
-                    {jobStatus.status === "downloading" && "Скачивание..."}
+                    {jobStatus.status === "downloading" && `Скачивание... ${jobStatus.progress.toFixed(0)}% · ${formatEta(jobStatus.eta_seconds)}`}
                     {jobStatus.status === "done" && "Готово!"}
                     {jobStatus.status === "error" && `Ошибка: ${jobStatus.error}`}
                   </p>

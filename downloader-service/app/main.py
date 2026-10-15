@@ -151,16 +151,27 @@ class AvailableQuality(BaseModel):
     value: str
     label: str
     available: bool = True
+    size_bytes: int | None = None
 
 
-class AnalyzeResponse(BaseModel):
-    title: str
-    duration: int | None = None
-    thumbnail: str | None = None
-    uploader: str | None = None
-    formats: list[FormatInfo] = []
-    qualities: list[AvailableQuality] = []
-    url: str
+def estimate_size(info: dict, height: int, file_format: str) -> int | None:
+    candidates = [f for f in info.get("formats", []) if f.get("height") == height and f.get("vcodec") != "none"]
+    if not candidates:
+        return None
+    f = max(candidates, key=lambda x: (x.get("filesize") or 0, x.get("tbr") or 0))
+    if f.get("filesize"):
+        return f["filesize"]
+    if f.get("tbr") and info.get("duration"):
+        return int(f["tbr"] * 1000 / 8 * info["duration"])
+    return None
+
+
+def estimate_audio_size(info: dict) -> int | None:
+    candidates = [f for f in info.get("formats", []) if f.get("acodec") != "none" and f.get("vcodec") == "none"]
+    if not candidates or not info.get("duration"):
+        return None
+    bitrate = max((f.get("tbr") or 0) for f in candidates)
+    return int(bitrate * 1000 / 8 * info["duration"]) if bitrate else None
 
 
 class FormatInfo(BaseModel):
@@ -172,6 +183,17 @@ class FormatInfo(BaseModel):
     acodec: str | None = None
 
 
+class AnalyzeResponse(BaseModel):
+    title: str
+    duration: int | None = None
+    thumbnail: str | None = None
+    uploader: str | None = None
+    formats: list[FormatInfo] = []
+    qualities: list[AvailableQuality] = []
+    format_sizes: dict[str, dict[str, int | None]] = {}
+    url: str
+
+
 class DownloadResponse(BaseModel):
     job_id: str
     status: str
@@ -181,6 +203,7 @@ class JobStatus(BaseModel):
     job_id: str
     status: str  # queued | downloading | done | error
     progress: float = 0.0
+    eta_seconds: int | None = None
     filename: str | None = None
     error: str | None = None
     file_size: int | None = None
@@ -197,6 +220,7 @@ class Job:
     file_format: str = DEFAULT_FORMAT
     status: str = "queued"
     progress: float = 0.0
+    eta_seconds: int | None = None
     filename: str | None = None
     error: str | None = None
     file_path: Path | None = None
@@ -287,7 +311,11 @@ def _download_video(url: str, job_id: str, quality: str, file_format: str) -> Pa
             return
         total = data.get('total_bytes') or data.get('total_bytes_estimate')
         if total and data.get('status') == 'downloading':
-            job.progress = min(95.0, 95.0 * data.get('downloaded_bytes', 0) / total)
+            downloaded = data.get('downloaded_bytes', 0)
+            job.progress = min(95.0, 95.0 * downloaded / total)
+            speed = data.get('speed') or 0
+            if speed > 0:
+                job.eta_seconds = max(0, int((total - downloaded) / speed))
         elif data.get('status') == 'finished':
             job.progress = 95.0
 
@@ -397,7 +425,8 @@ async def analyze(req: AnalyzeRequest):
         thumbnail=cache_youtube_thumbnail(info),
         uploader=info.get("uploader"),
         formats=formats[:50],
-        qualities=[AvailableQuality(value=f"{h}p", label=f"{h}p") for h in sorted({int(f["height"]) for f in info.get("formats", []) if f.get("height") and f.get("vcodec") != "none"}) if f"{h}p" in ALLOWED_QUALITIES],
+        qualities=[AvailableQuality(value=f"{h}p", label=f"{h}p", size_bytes=estimate_size(info, h, DEFAULT_FORMAT)) for h in sorted({int(f["height"]) for f in info.get("formats", []) if f.get("height") and f.get("vcodec") != "none"}) if f"{h}p" in ALLOWED_QUALITIES],
+        format_sizes={f"{h}p": {"mp4": estimate_size(info, h, "mp4"), "webm": estimate_size(info, h, "webm"), "mp3": estimate_audio_size(info)} for h in sorted({int(f["height"]) for f in info.get("formats", []) if f.get("height") and f.get("vcodec") != "none"}) if f"{h}p" in ALLOWED_QUALITIES},
         url=url,
     )
 

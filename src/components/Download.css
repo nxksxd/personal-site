@@ -163,6 +163,13 @@
   display: flex;
   gap: 10px;
   flex: 1;
+  align-items: center;
+}
+
+.download__size {
+  color: var(--text-secondary);
+  white-space: nowrap;
+  font-size: 0.9rem;
 }
 
 .download__select {
