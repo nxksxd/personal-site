@@ -112,9 +112,6 @@ function PasswordGenerator() {
       <div className="password__inner">
         <a href="/" className="password__back">&larr; На главную</a>
         <h1 className="password__title">Paswrd</h1>
-        <p className="password__subtitle">
-          Генератор безопасных паролей. Всё считается локально в браузере, пароли никуда не отправляются.
-        </p>
 
         <div className="password__panel">
           <div className="password__row">
