@@ -61,10 +61,8 @@ FILE_TTL_SECONDS = 5 * 60  # 5 min
 EXTRACT_TIMEOUT = 60
 DOWNLOAD_TIMEOUT = 600  # 10 min per job
 MAX_FILE_SIZE_MB = 2000
-ALLOWED_QUALITIES = {"360p", "480p", "720p", "1080p"}
+MAX_QUALITY_HEIGHT = 4320  # 8K upper bound; qualities are discovered per-video
 ALLOWED_FORMATS = {"mp4", "webm", "mp3"}
-
-QUALITY_HEIGHTS = {"360p": 360, "480p": 480, "720p": 720, "1080p": 1080}
 
 # Audio-only remains a format choice rather than a video quality.
 DEFAULT_QUALITY = "720p"
@@ -152,6 +150,27 @@ class AvailableQuality(BaseModel):
     label: str
     available: bool = True
     size_bytes: int | None = None
+
+
+def _video_heights(info: dict) -> list[int]:
+    """All real video heights advertised for this video, ascending."""
+    return sorted({
+        int(f["height"])
+        for f in info.get("formats", [])
+        if f.get("height") and f.get("vcodec") != "none"
+        and 0 < int(f["height"]) <= MAX_QUALITY_HEIGHT
+    })
+
+
+def _quality_from_value(quality: str) -> int | None:
+    """Parse '1080p' -> 1080. Returns None if not a height-based quality."""
+    if not quality.endswith("p"):
+        return None
+    try:
+        height = int(quality[:-1])
+    except ValueError:
+        return None
+    return height if 0 < height <= MAX_QUALITY_HEIGHT else None
 
 
 def estimate_size(info: dict, height: int, file_format: str) -> int | None:
@@ -295,7 +314,7 @@ def _download_video(url: str, job_id: str, quality: str, file_format: str) -> Pa
     job_dir = _job_dir(job_id)
     job_dir.mkdir(parents=True, exist_ok=True)
 
-    height = QUALITY_HEIGHTS.get(quality, QUALITY_HEIGHTS[DEFAULT_QUALITY])
+    height = _quality_from_value(quality) or 720
     if file_format == "mp3":
         fmt = "bestaudio/best"
     elif file_format == "mp4":
@@ -425,8 +444,22 @@ async def analyze(req: AnalyzeRequest):
         thumbnail=cache_youtube_thumbnail(info),
         uploader=info.get("uploader"),
         formats=formats[:50],
-        qualities=[AvailableQuality(value=f"{h}p", label=f"{h}p", size_bytes=estimate_size(info, h, DEFAULT_FORMAT)) for h in sorted({int(f["height"]) for f in info.get("formats", []) if f.get("height") and f.get("vcodec") != "none"}) if f"{h}p" in ALLOWED_QUALITIES],
-        format_sizes={f"{h}p": {"mp4": estimate_size(info, h, "mp4"), "webm": estimate_size(info, h, "webm"), "mp3": estimate_audio_size(info)} for h in sorted({int(f["height"]) for f in info.get("formats", []) if f.get("height") and f.get("vcodec") != "none"}) if f"{h}p" in ALLOWED_QUALITIES},
+        qualities=[
+            AvailableQuality(
+                value=f"{h}p",
+                label=f"{h}p",
+                size_bytes=estimate_size(info, h, DEFAULT_FORMAT),
+            )
+            for h in _video_heights(info)
+        ],
+        format_sizes={
+            f"{h}p": {
+                "mp4": estimate_size(info, h, "mp4"),
+                "webm": estimate_size(info, h, "webm"),
+                "mp3": estimate_audio_size(info),
+            }
+            for h in _video_heights(info)
+        },
         url=url,
     )
 
@@ -438,8 +471,8 @@ async def start_download(req: DownloadRequest):
     file_format = req.file_format.lower()
     if quality == "audio":
         quality, file_format = DEFAULT_QUALITY, "mp3"
-    if quality not in ALLOWED_QUALITIES:
-        raise HTTPException(status_code=400, detail=f"Invalid quality. Allowed: {ALLOWED_QUALITIES}")
+    if _quality_from_value(quality) is None:
+        raise HTTPException(status_code=400, detail="Invalid quality. Expected a value like '1080p' or 'audio'.")
     if file_format not in ALLOWED_FORMATS:
         raise HTTPException(status_code=400, detail=f"Invalid format. Allowed: {ALLOWED_FORMATS}")
 

@@ -31,17 +31,26 @@ interface JobStatus {
 
 const API_BASE = "/download-api";
 
-const QUALITY_OPTIONS = [
-  { value: "360p", label: "360p" },
-  { value: "480p", label: "480p" },
-  { value: "720p", label: "720p" },
-  { value: "1080p", label: "1080p" },
-];
 const FORMAT_OPTIONS = [
   { value: "mp4", label: "MP4 (совместимый)" },
   { value: "webm", label: "WebM" },
   { value: "mp3", label: "MP3 (аудио)" },
 ];
+
+// Highest first, like media players do.
+const cleanQualities = (list: { value: string }[] | undefined) =>
+  (list ?? [])
+    .map((q) => q.value)
+    .sort((a, b) => parseInt(b, 10) - parseInt(a, 10));
+
+function heightBadge(height: number): string | null {
+  if (height >= 2160) return "4K";
+  if (height >= 1440) return "2K";
+  if (height >= 1080) return "FHD";
+  if (height >= 720) return "HD";
+  if (height >= 480) return "SD";
+  return null;
+}
 
 function formatDuration(seconds: number | null): string {
   if (!seconds) return "—";
@@ -96,6 +105,10 @@ export default function Download() {
         throw new Error(data.detail || "Ошибка анализа");
       }
       setInfo(data);
+      // Auto-select the best quality not above 1080p (falls back to highest available).
+      const available = cleanQualities(data.qualities);
+      const preferred = available.find((q) => parseInt(q, 10) <= 1080) ?? available[0];
+      if (preferred) setQuality(preferred);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Не удалось загрузить информацию");
     } finally {
@@ -218,7 +231,15 @@ export default function Download() {
                   <div className="download__selects">
                     <span className="download__size">≈ {formatSize(selectedSize)}</span>
                     <select className="download__select" value={quality} onChange={(e) => setQuality(e.target.value)} disabled={downloading}>
-                      {QUALITY_OPTIONS.filter((q) => info.qualities?.some((a) => a.value === q.value)).map((q) => <option key={q.value} value={q.value}>{q.label} · {formatSize(info.format_sizes?.[q.value]?.[fileFormat] ?? null)}</option>)}
+                      {cleanQualities(info.qualities).map((q) => {
+                        const height = parseInt(q, 10);
+                        const badge = heightBadge(height);
+                        return (
+                          <option key={q} value={q}>
+                            {q}{badge ? ` · ${badge}` : ""} · {formatSize(info.format_sizes?.[q]?.[fileFormat] ?? null)}
+                          </option>
+                        );
+                      })}
                     </select>
                     <select className="download__select" value={fileFormat} onChange={(e) => setFileFormat(e.target.value)} disabled={downloading}>
                       {FORMAT_OPTIONS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
