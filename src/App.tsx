@@ -12,6 +12,7 @@ import ProjectPage from "./components/ProjectPage";
 import Footer from "./components/Footer";
 import Terms from "./components/Terms";
 import Download from "./components/Download";
+import Paswrd from "./components/Password";
 import AdminPanel from "./components/admin/AdminPanel";
 import AdminLogin from "./components/admin/AdminLogin";
 
@@ -21,6 +22,7 @@ const LEGACY_ROUTES: Record<string, string> = {
   "#admin": "/admin",
   "#terms": "/terms",
   "#download": "/download",
+  "#paswrd": "/paswrd",
 };
 
 function usePathRoute() {
@@ -50,6 +52,7 @@ function ProjectsPage() { return <><Header /><main id="main"><AllProjects /></ma
 function NewsPage() { return <><Header /><main id="main"><AllNews /></main><Footer /></>; }
 function TermsPage() { return <><Header /><main id="main"><Terms /></main><Footer /></>; }
 function DownloadPage() { return <><Header /><main id="main"><Download /></main><Footer /></>; }
+function PaswrdPage() { return <><Header /><main id="main"><Paswrd /></main><Footer /></>; }
 function ProjectDetailPage({ id }: { id: number }) { return <><Header /><main id="main"><ProjectPage id={id} /></main><Footer /></>; }
 
 function AdminGate({ onBack }: { onBack: () => void }) {
@@ -70,6 +73,7 @@ export default function App() {
       case "/news": return <NewsPage />;
       case "/terms": return <TermsPage />;
       case "/download": return <DownloadPage />;
+      case "/paswrd": return <PaswrdPage />;
       default: return <Home />;
     }
   };

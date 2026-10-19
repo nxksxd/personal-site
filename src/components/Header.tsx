@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { label: "Проекты", href: "/projects" },
   { label: "Новости", href: "/news" },
   { label: "SnatchClip", href: "/download" },
+  { label: "Paswrd", href: "/paswrd" },
   { label: "Контакты", href: "/#footer" },
 ];
 
